@@ -8,9 +8,9 @@ subtitulo_mx_confirmados <-  str_c("Cifras a las 19:00 hrs. del ",
 
 ### Generar folder para guardar las gráficas ----
 dir_graficas <- 
-  dir.create(file.path("03_graficas/03_grficas_analisis_mexico/", 
+  dir.create(file.path("03_graficas/03_graficas_analisis_mexico/", 
                        str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"))))
-ruta_graficas <- str_c("03_graficas/03_grficas_analisis_mexico/", 
+ruta_graficas_x <- str_c("03_graficas/03_graficas_analisis_mexico/", 
                        str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"), "/"))
 
 
@@ -63,7 +63,7 @@ foo %>%
         axis.title.y = element_text(size = 20),
         axis.ticks.y = element_blank()) +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0)) +
-  ggsave(str_c(ruta_graficas, "01_evolucion_casos_acumulados_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
+  ggsave(str_c(ruta_graficas_x, "01_evolucion_casos_acumulados_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
 
 
 ### Gráfica 02: Número de nuevos casos de Covid-19 confirmados diariamente en México ----
@@ -89,7 +89,7 @@ mx_confirmados %>%
         axis.title.y = element_text(size = 20),
         axis.ticks.y = element_blank()) +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0)) +
-  ggsave(str_c(ruta_graficas, "02_evolucion_casos_confirmados_diariamente_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
+  ggsave(str_c(ruta_graficas_x, "02_evolucion_casos_confirmados_diariamente_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
 
 
 
@@ -115,7 +115,7 @@ foo %>%
   theme(plot.title = element_text(size = 32),
         plot.subtitle = element_text(size = 22)) +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0)) +
-  ggsave(str_c(ruta_graficas, "03_numero_casos_por_entidad_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 12)
+  ggsave(str_c(ruta_graficas_x, "03_numero_casos_por_entidad_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 12)
 
 ### Gráfica 04: Treemap del número de casos de Covid-19 confirmados en cada entidad ----
 mx_confirmados %>% 
@@ -138,7 +138,7 @@ mx_confirmados %>%
         plot.subtitle = element_text(size = 22),
         legend.position = "none") +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0)) +
-  ggsave(str_c(ruta_graficas, "04_numero_casos_por_entidad_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_x, "04_numero_casos_por_entidad_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 ### Gráfica 05: Heatmap del número acumulado de casos confirmados de Covid-19 en cada entidad de México ----
 foo <- 
@@ -187,7 +187,7 @@ foo %>%
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         axis.ticks.y = element_blank()) +
   guides(fill = guide_colourbar(title.position="top", title.hjust = 0))  +
-  ggsave(str_c(ruta_graficas, "05_evolucion_casos_confirmados_por_edo_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 17, height = 11)
+  ggsave(str_c(ruta_graficas_x, "05_evolucion_casos_confirmados_por_edo_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 17, height = 11)
 
 
 ### Gráfica 06: Número de casos confirmados de Covid-19, por género y edad ----
@@ -226,7 +226,7 @@ foo %>%
         axis.text.x = element_text(size = 15),
         legend.position = "none",
         strip.text = element_text(size = 18)) +
-  ggsave(str_c(ruta_graficas, "06_numero_casos_por_genero_edad", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_x, "06_numero_casos_por_genero_edad", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 ### Gráfica 07: Porcentaje de casos de Covid-19 confirmados diariamente cuyo contagio ocurrió\nen México o el extranjero ----
@@ -270,7 +270,7 @@ mx_confirmados %>%
         legend.position = c(0.77, -0.25), 
         legend.direction = "horizontal",
         legend.text = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas, "07_evolucion_porcentaje_contagios_domesticos_foraneos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
+  ggsave(str_c(ruta_graficas_x, "07_evolucion_porcentaje_contagios_domesticos_foraneos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
 
 
 
