@@ -12,6 +12,7 @@ covid_x_pais <-
   read_csv(str_c("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-",  day(Sys.Date()), "-2020.csv")) %>% 
   clean_names()
 
+
 # Serie de tiempo de casos confirmados
 casos_x_pais_serie <- 
   # read_csv("01_datos/coronavirus/time_series/time_series_19-covid-Confirmed.csv") %>%
@@ -34,7 +35,7 @@ muertos_x_pais_serie <-
 # Serie de tiempo de recuperados
 recuperados_x_pais_serie <- 
   # read_csv("01_datos/coronavirus/time_series/time_series_19-covid-Recovered.csv") %>% 
-  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv") %>%
+  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv") %>%
   pivot_longer(cols = -c(`Province/State`:Long),
                names_to = "fecha_corte", 
                values_to = "recuperados") %>% 
