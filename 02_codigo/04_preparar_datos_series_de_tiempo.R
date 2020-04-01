@@ -21,10 +21,10 @@ datos <-
          cambio_diario_casos = ifelse(pais == "México", lead(cambio_diario_casos), cambio_diario_casos),
          en_tratamiento = ifelse(pais == "México", lead(en_tratamiento), en_tratamiento),
          por_casos_conf_fallecieron = ifelse(pais == "México", lead(por_casos_conf_fallecieron), por_casos_conf_fallecieron)) %>% 
-  mutate(casos_confirmados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 405, casos_confirmados),
-         muertes = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 5, muertes),
-         recuperados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 5, recuperados),
-         total_casos = ifelse(pais == "México", 405, total_casos), 
+  mutate(casos_confirmados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 1215, casos_confirmados),
+         muertes = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 29, muertes),
+         recuperados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 35, recuperados),
+         total_casos = ifelse(pais == "México", 1215, total_casos), 
          cambio_diario_casos = ifelse(pais == "México", casos_confirmados - lag(casos_confirmados), cambio_diario_casos),
          en_tratamiento = ifelse(pais == "México", casos_confirmados - muertes - recuperados, en_tratamiento),
          por_casos_conf_fallecieron = ifelse(pais == "México", round(muertes/casos_confirmados*100, 1), por_casos_conf_fallecieron)) 
