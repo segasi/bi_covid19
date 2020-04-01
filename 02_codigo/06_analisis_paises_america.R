@@ -51,9 +51,10 @@ bd_america_st %>%
 ### Ajustar datos de México con datos actualizados a las 19 hrs. ----
 bd_america <- 
   bd_america %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 405, casos_confirmados),
-         muertes = ifelse(pais == "México", 5, muertes),
-         recuperados = ifelse(pais == "México", 4, recuperados)) %>%  
+  mutate(casos_confirmados = ifelse(pais == "México", 1215, casos_confirmados),
+         muertes = ifelse(pais == "México", 29, muertes),
+         recuperados = ifelse(pais == "México", 35, recuperados)
+         ) %>%  
   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
          tasa_letalidad = round((muertes/casos_confirmados)*100, 2))
 
@@ -62,8 +63,8 @@ bd_america <-
 ### Gráfica 01: Número de casos confirmados de COVID-19 en países de América -----
 bd_america %>%   
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(casos_confirmados > 1500, comma(casos_confirmados, accuracy = 1), ""),
-         etiquetas_peques = ifelse(casos_confirmados <= 1500, comma(casos_confirmados, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(casos_confirmados > 7000, comma(casos_confirmados, accuracy = 1), ""),
+         etiquetas_peques = ifelse(casos_confirmados <= 7000, comma(casos_confirmados, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, casos_confirmados), 
              y = casos_confirmados,
              fill = color_barras)) +
@@ -112,8 +113,8 @@ bd_america %>%
 ### Gráfica 03: Número de muertes por COVID-19 en países de América -----
 bd_america %>% 
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(muertes > 15, comma(muertes, accuracy = 1), ""),
-         etiquetas_peques = ifelse(muertes <= 15, comma(muertes, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(muertes > 60, comma(muertes, accuracy = 1), ""),
+         etiquetas_peques = ifelse(muertes <= 60, comma(muertes, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, muertes), 
              y = muertes,
              fill = color_barras)) +
@@ -126,7 +127,7 @@ bd_america %>%
                      breaks = seq(0, 1000, 100),
                      labels = comma_format(accuracy = 1)) +
   scale_fill_manual(values = c("black", "salmon")) +
-  labs(title = "Muertes provocadas por Covid-19 en países de América*",
+  labs(title = "Casos confirmados de Covid-19 que fallecieron en países de América*",
        subtitle = subtitulo,
        x = NULL,
        y = NULL,
@@ -147,7 +148,7 @@ bd_america %>%
   geom_treemap_text(aes(label = paste(comma(muertes, accuracy = 1), "muertes", sep = " ")), color = "white", padding.y = unit(7, "mm"),min.size = 0) +
   geom_treemap_text(aes(label = paste(comma(muertes/sum(muertes)*100, accuracy = 1), "% del total", sep = "")), color = "white", padding.y = unit(14, "mm"), min.size = 0, size = 14) +
   scale_fill_gradient(low = "grey95", high = "black", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
-  labs(title = "Muertes provocadas por COVID-19 en países de América*",
+  labs(title = "Casos confirmados de Covid-19 que fallecieron en países de América*",
        subtitle = subtitulo,
        x = NULL,
        y = NULL,
@@ -161,8 +162,8 @@ bd_america %>%
 ### Gráfica 05: Número de pacientes que se recuperaron por COVID-19 en países de América -----
 bd_america %>% 
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(recuperados > 15, comma(recuperados, accuracy = 1), ""),
-         etiquetas_peques = ifelse(recuperados <= 15, comma(recuperados, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(recuperados > 200, comma(recuperados, accuracy = 1), ""),
+         etiquetas_peques = ifelse(recuperados <= 200, comma(recuperados, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, recuperados), 
              y = recuperados,
              fill = color_barras)) +
@@ -175,14 +176,14 @@ bd_america %>%
                      breaks = seq(0, 1000, 100),
                      labels = comma_format(accuracy = 1)) +
   scale_fill_manual(values = c("#41ab5d", "salmon")) +
-  labs(title = "Pacientes que se recuperaron después de haber enfermado por el\nCOVID-19 en países de América*",
+  labs(title = "Casos confirmados de COVID-19 que se recuperaron en países de América*",
        subtitle = subtitulo,
        x = NULL,
        y = NULL,
        fill = NULL,
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
-  theme(plot.title = element_text(size = 33), 
+  theme(plot.title = element_text(size = 30), 
         panel.grid.major = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
@@ -340,10 +341,10 @@ foo %>%
   scale_x_continuous(breaks = c(1, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(foo$casos_confirmados) + max(foo$casos_confirmados)*0.1),
                      label = comma, 
-                     breaks = seq(0, 3000, 250)) +
+                     breaks = seq(0, 8000, 500)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
-  labs(title = "Evolución del número acumulado de casos desde el primer caso confirmado en\npaíses de América Latina*",
+  labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en países de América Latina*",
        subtitle = subtitulo,
        x = "\nDías desde el primer caso confirmado  ",
        y = "Número de casos  \n",
