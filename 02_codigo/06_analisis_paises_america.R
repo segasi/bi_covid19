@@ -1,3 +1,6 @@
+### Limpiar ambiente ----
+remove(list = ls())
+
 ### Cargar paquetes, definir setup y tema de gráficas ----
 source("02_codigo/paquetes_setup_tema.R") 
 
@@ -5,7 +8,9 @@ source("02_codigo/paquetes_setup_tema.R")
 source("02_codigo/coronavirus/funciones_limpieza_bd.R")
 
 ### Definir cortes de datos ----
-subtitulo <- str_c("Cifras a las 19:00 hrs. del ", day(Sys.Date())," de marzo de 2020 (CDMX)")
+subtitulo <- str_c("Cifras a las 19:00 hrs. del ", 
+                   day(Sys.Date()), 
+                   " de abril de 2020 (CDMX)")
 
 
 ### Generar folder para guardar las gráficas ----
@@ -19,7 +24,7 @@ ruta_graficas_america <- str_c("03_graficas/02_graficas_analisis_america/",
 
 # Automático
 datos_diarios <- 
-  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_03_", 
+  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_0", 
                  day(Sys.Date()),
                  ".csv"))
 
@@ -51,9 +56,9 @@ bd_america_st %>%
 ### Ajustar datos de México con datos actualizados a las 19 hrs. ----
 bd_america <- 
   bd_america %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 1215, casos_confirmados),
-         muertes = ifelse(pais == "México", 29, muertes),
-         recuperados = ifelse(pais == "México", 35, recuperados)
+  mutate(casos_confirmados = ifelse(pais == "México", 2143, casos_confirmados),
+         muertes = ifelse(pais == "México", 94, muertes),
+         recuperados = ifelse(pais == "México", 633, recuperados)
          ) %>%  
   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
          tasa_letalidad = round((muertes/casos_confirmados)*100, 2))
@@ -63,14 +68,14 @@ bd_america <-
 ### Gráfica 01: Número de casos confirmados de COVID-19 en países de América -----
 bd_america %>%   
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(casos_confirmados > 7000, comma(casos_confirmados, accuracy = 1), ""),
-         etiquetas_peques = ifelse(casos_confirmados <= 7000, comma(casos_confirmados, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(casos_confirmados > 15000, comma(casos_confirmados, accuracy = 1), ""),
+         etiquetas_peques = ifelse(casos_confirmados <= 15000, comma(casos_confirmados, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, casos_confirmados), 
              y = casos_confirmados,
              fill = color_barras)) +
   geom_col() +
   geom_text(aes(label = etiquetas_gdes), color = "white", size = 4, hjust = 1.2, fontface = "bold") +
-  geom_text(aes(label = etiquetas_peques), color = "grey20", size = 4, hjust = -0.3, fontface = "bold") +
+  geom_text(aes(label = etiquetas_peques), color = "grey20", size = 4, hjust = -0.2, fontface = "bold") +
   coord_flip() +
   scale_y_continuous(expand = c(0, 0), 
                      # limits = c(-1, 1050), 
@@ -113,8 +118,8 @@ bd_america %>%
 ### Gráfica 03: Número de muertes por COVID-19 en países de América -----
 bd_america %>% 
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(muertes > 60, comma(muertes, accuracy = 1), ""),
-         etiquetas_peques = ifelse(muertes <= 60, comma(muertes, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(muertes > 1000, comma(muertes, accuracy = 1), ""),
+         etiquetas_peques = ifelse(muertes <= 1000, comma(muertes, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, muertes), 
              y = muertes,
              fill = color_barras)) +
@@ -134,7 +139,7 @@ bd_america %>%
        fill = NULL,
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
-  theme(plot.title = element_text(size = 33), 
+  theme(plot.title = element_text(size = 32), 
         panel.grid.major = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
@@ -162,8 +167,8 @@ bd_america %>%
 ### Gráfica 05: Número de pacientes que se recuperaron por COVID-19 en países de América -----
 bd_america %>% 
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(recuperados > 200, comma(recuperados, accuracy = 1), ""),
-         etiquetas_peques = ifelse(recuperados <= 200, comma(recuperados, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(recuperados > 400, comma(recuperados, accuracy = 1), ""),
+         etiquetas_peques = ifelse(recuperados <= 400, comma(recuperados, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, recuperados), 
              y = recuperados,
              fill = color_barras)) +
@@ -301,7 +306,7 @@ bd_america_st %>%
 
 
 
-### Gráfica 10: Evolución del número acumulado de casos desde el primer caso confirmado en países de América Latina ---- 
+### Gráfica 10_01: Evolución del número acumulado de casos desde el primer caso confirmado en países de América Latina ---- 
 foo <- 
   bd_america_st %>% 
   mutate(pais = ifelse(str_detect(pais, "Dominicana"), "Rep. Dom.", pais)) %>% 
@@ -309,15 +314,18 @@ foo <-
   mutate(primer_caso = ifelse(casos_confirmados > 0 & fecha_corte == as_date("2020-01-22") | casos_confirmados > 0 & lag(casos_confirmados) == 0 & pais != "EEUU", 1, NA),
          dummy_dias_primer_caso = primer_caso) %>% 
   fill(dummy_dias_primer_caso, .direction = "down") %>% 
-  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0))) %>% 
+  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0)),
+         dias_primer_caso = dias_primer_caso - 1) %>% 
   ungroup() %>% 
-  filter(dias_primer_caso != 0, 
+  filter(dias_primer_caso >= 0, 
          !pais %in% c("Canadá", "EEUU")) %>% 
   mutate(color_linea = ifelse(pais == "México", "México", "Otros países"),
-         etiquetas_paises = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 150, pais, ""),
+         etiquetas_paises = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 350, pais, ""),
+         etiquetas_paises_log = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 1350 | fecha_corte == max(fecha_corte) & dias_primer_caso >= 15, pais, ""),
          pais = fct_relevel(pais, "México", after = Inf)) %>% 
   group_by(pais) %>% 
-  mutate(puntito_final = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 150, casos_confirmados, NA)) %>% 
+  mutate(puntito_final = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 350, casos_confirmados, NA),
+         puntito_final_log = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 350 | fecha_corte == max(fecha_corte) & dias_primer_caso >= 15, casos_confirmados, NA)) %>% 
   ungroup()
 
 set.seed(12)
@@ -338,10 +346,10 @@ foo %>%
                   fontface = "bold",
                   direction = "x",
                   size = 5) +
-  scale_x_continuous(breaks = c(1, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(foo$casos_confirmados) + max(foo$casos_confirmados)*0.1),
                      label = comma, 
-                     breaks = seq(0, 8000, 500)) +
+                     breaks = seq(0, 12000, 1000)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en países de América Latina*",
@@ -351,5 +359,132 @@ foo %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_america, "10_evolucion_casos_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_america, "10_01_evolucion_casos_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+
+
+### Gráfica 10_02: Evolución del número acumulado de casos desde el primer caso confirmado en países de América Latina, log 10 ---- 
+
+foo %>% 
+  ggplot(aes(x = dias_primer_caso, 
+             y = casos_confirmados, 
+             group = pais, 
+             color = color_linea, 
+             alpha = color_linea)) +
+  geom_line(size = 1) +
+  geom_point(aes(x = dias_primer_caso, 
+                 y = puntito_final_log),
+             size = 2) +
+  geom_text_repel(aes(label = etiquetas_paises_log),
+                  # vjust = -0.7,
+                  color = "grey30",
+                  # force = 0.5,
+                  fontface = "bold",
+                  # direction = "x",
+                  size = 5) +
+  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
+  scale_y_log10(labels = comma_format(accuracy = 1), 
+                # limits = c(1, 6e5),
+                breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
+  scale_color_manual(values = c("#1E6847", "grey80")) +
+  scale_alpha_manual(values = c(1, 0.7)) +
+  labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en países de América Latina*",
+       subtitle = str_c(subtitulo, " | Distancia logarítmica en las etiquetas del eje vertical"),
+       x = "\nDías desde el primer caso confirmado  ",
+       y = "Número de casos (log 10)    \n",
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
+  tema +
+  theme(legend.position = "none")  +
+  ggsave(str_c(ruta_graficas_america, "10_02_evolucion_casos_paises_america_latina_desde_primer_caso_log_10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+
+
+
+### Gráfica 11_01: Evolución del número acumulado de muertes desde el primer caso confirmado en países de América Latina ---- 
+foo <- 
+  bd_america_st %>% 
+  mutate(pais = ifelse(str_detect(pais, "Dominicana"), "Rep. Dom.", pais)) %>% 
+  group_by(pais) %>% 
+  mutate(primer_caso = ifelse(casos_confirmados > 0 & fecha_corte == as_date("2020-01-22") | casos_confirmados > 0 & lag(casos_confirmados) == 0 & pais != "EEUU", 1, NA),
+         dummy_dias_primer_caso = primer_caso) %>% 
+  fill(dummy_dias_primer_caso, .direction = "down") %>% 
+  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0)),
+         dias_primer_caso = dias_primer_caso - 1) %>% 
+  ungroup() %>% 
+  filter(dias_primer_caso >= 0, 
+         !pais %in% c("Canadá", "EEUU")) %>% 
+  mutate(color_linea = ifelse(pais == "México", "México", "Otros países"),
+         etiquetas_paises = ifelse(fecha_corte == max(fecha_corte) & muertes > 20, pais, ""),
+         etiquetas_paises_log = ifelse(fecha_corte == max(fecha_corte) & muertes > 20 | fecha_corte == max(fecha_corte) & dias_primer_caso >= 20, pais, ""),
+         pais = fct_relevel(pais, "México", after = Inf)) %>% 
+  group_by(pais) %>% 
+  mutate(puntito_final = ifelse(fecha_corte == max(fecha_corte) & muertes > 20, muertes, NA),
+         puntito_final_log = ifelse(fecha_corte == max(fecha_corte) & muertes > 20 | fecha_corte == max(fecha_corte) & dias_primer_caso >= 20, muertes, NA)) %>% 
+  ungroup()
+
+set.seed(12)
+foo %>% 
+  ggplot(aes(x = dias_primer_caso, 
+             y = muertes, 
+             group = pais, 
+             color = color_linea, 
+             alpha = color_linea)) +
+  geom_line(size = 1) +
+  geom_point(aes(x = dias_primer_caso, 
+                 y = puntito_final),
+             size = 2) +
+  geom_text_repel(aes(label = etiquetas_paises),
+                  vjust = -0.7,
+                  color = "grey30",
+                  force = 0.2,
+                  fontface = "bold",
+                  direction = "x",
+                  size = 5) +
+  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
+  scale_y_continuous(limits = c(0, max(foo$muertes) + max(foo$muertes)*0.1),
+                     label = comma, 
+                     breaks = seq(0, 500, 50)) +
+  scale_color_manual(values = c("#1E6847", "grey80")) +
+  scale_alpha_manual(values = c(1, 0.7)) +
+  labs(title = "Evolución del número acumulado de muertes desde el primer caso confirmado\nen países de América Latina*",
+       subtitle = subtitulo,
+       x = "\nDías desde el primer caso confirmado  ",
+       y = "Número de muertes  \n",
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
+  tema +
+  theme(legend.position = "none")  +
+  ggsave(str_c(ruta_graficas_america, "11_01_evolucion_muertes_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+
+
+### Gráfica 11_02: Evolución del número acumulado de muertes desde el primer caso confirmado en países de América Latina, log 10 ---- 
+
+foo %>% 
+  ggplot(aes(x = dias_primer_caso, 
+             y = muertes, 
+             group = pais, 
+             color = color_linea, 
+             alpha = color_linea)) +
+  geom_line(size = 1) +
+  geom_point(aes(x = dias_primer_caso, 
+                 y = puntito_final_log),
+             size = 2) +
+  geom_text_repel(aes(label = etiquetas_paises_log),
+                  vjust = -0.7,
+                  color = "grey30",
+                  force = 0.2,
+                  fontface = "bold",
+                  direction = "x",
+                  size = 5) +
+  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
+  scale_y_log10(labels = comma_format(accuracy = 1), 
+                # limits = c(1, 6e5),
+                breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
+  scale_color_manual(values = c("#1E6847", "grey80")) +
+  scale_alpha_manual(values = c(1, 0.7)) +
+  labs(title = "Evolución del número acumulado de muertes desde el primer caso confirmado\nen países de América Latina*",
+       subtitle = str_c(subtitulo, " | Distancia logarítmica en las etiquetas del eje vertical"),
+       x = "\nDías desde el primer caso confirmado  ",
+       y = "Número de muertes (log 10)    \n",
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
+  tema +
+  theme(legend.position = "none")  +
+  ggsave(str_c(ruta_graficas_america, "11_02_evolucion_muertes_paises_america_latina_desde_primer_caso_log_11_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 

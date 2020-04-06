@@ -1,3 +1,6 @@
+### Limpiar ambiente ----
+remove(list = ls())
+
 ### Cargar paquetes, definir setup y tema de gráficas ----
 source("02_codigo/00_paquetes_setup_tema.R") 
 
@@ -25,7 +28,7 @@ sars <-
   mutate(fecha = as_date(fecha))
 
 novel_x_pais <- 
-  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_03_",
+  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_0",
                  day(Sys.Date()), 
                  ".csv")) %>% 
   clean_names() 
@@ -39,9 +42,9 @@ source("02_codigo/04_preparar_datos_series_de_tiempo.R")
 ## Para las gráficas 01 a 10 ----
 novel_x_pais <- 
   novel_x_pais %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 1215, casos_confirmados),
-         recuperados = ifelse(pais == "México", 35, recuperados),
-         muertes = ifelse(pais == "México", 29, muertes)) %>%  
+  mutate(casos_confirmados = ifelse(pais == "México", 2143, casos_confirmados),
+         recuperados = ifelse(pais == "México", 633, recuperados),
+         muertes = ifelse(pais == "México", 94, muertes)) %>%  
   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
          por_casos_conf_fallecieron = round((muertes/casos_confirmados)*100, 2))
 
@@ -79,7 +82,7 @@ sars %>%
   geom_line(color = "salmon", size = 1) +
   geom_line(data = novel, aes(x = dias_brote, y = casos_totales), color = "steelblue", size = 1) +
   ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 17, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 17, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.7, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 17, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.6, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
   ggplot2::annotate(geom = "text", x = 255, y = 65000, label = "SARS", color = "salmon", size = 8, hjust = 0.5) +
   ggplot2::annotate(geom = "text", x = 255, y = 30000, label = "(2002-2003)", color = "salmon", size = 6, hjust = 0.5) +
   ggplot2::annotate(geom = "text", x = 255, y = 15000, label = str_c("Casos: ", comma(datos_sars$casos_totales), " | Muertos: ", comma(datos_sars$muertes)), color = "grey50", size = 5, hjust = 0.5) +
@@ -119,7 +122,7 @@ novel %>%
   ggplot(aes(x = dias_brote, y = casos_totales)) +
   geom_line(aes(x = dias_brote, y = casos_totales), color = "steelblue", size = 1) +
   ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.7, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.6, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
   scale_x_continuous(limits = c(0, 130), breaks = seq(0, 300, 10)) +
   scale_y_log10(labels = comma_format(accuracy = 1), 
                 breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
@@ -140,11 +143,11 @@ sars %>%
   geom_line(data = novel, aes(x = dias_brote, y = muertes), color = "steelblue", size = 1) +
   ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 17, y = max(novel$muertes), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
   ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 17, y = max(novel$muertes) - max(novel$muertes) * 0.1, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = 255, y = 6000, label = "SARS", color = "salmon", size = 8, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = 255, y = 4000, label = "(2002-2003)", color = "salmon", size = 6, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = 255, y = 2050, label = str_c("Casos: ", comma(datos_sars$casos_totales), " | Muertos: ", comma(datos_sars$muertes)), color = "grey50", size = 5, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = 255, y = 11000, label = "SARS", color = "salmon", size = 8, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = 255, y = 6500, label = "(2002-2003)", color = "salmon", size = 6, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = 255, y = 3000, label = str_c("Casos: ", comma(datos_sars$casos_totales), " | Muertos: ", comma(datos_sars$muertes)), color = "grey50", size = 5, hjust = 0.5) +
   scale_x_continuous(limits = c(0, 275), breaks = seq(0, 300, 25)) +
-  scale_y_continuous(breaks = c(seq(0, 40000, 5000)), labels = comma) +
+  scale_y_continuous(breaks = c(seq(0, 80000, 5000)), labels = comma) +
   labs(title = "Número de muertes provocadas por COVID-19 y SARS desde el comienzo de la\nrespectiva epidemia",
        subtitle = subtitulo_lineas,
        x = "\nDías transcurridos desde la fecha en que      \nse considera que inició el brote      ",
@@ -288,7 +291,7 @@ novel_x_pais %>%
          num_casos = ifelse(casos_confirmados == max(casos_confirmados), 
                             str_c(comma(casos_confirmados), " casos"),
                             comma(casos_confirmados))) %>% 
-  filter(casos_confirmados >= 1000) %>%
+  filter(casos_confirmados >= 1500) %>%
   ggplot(aes(x = fct_reorder(pais, casos_confirmados), 
              y = porcentaje,
              fill = estatus)) +
@@ -312,7 +315,7 @@ novel_x_pais %>%
        x = NULL,
        y = "\nPorcentaje                       ",
        fill = NULL,
-       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad de Johns Hopkins.\n*La gráfica solo incluye los países y territorios que han reportado 1,000 o más casos") +
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad de Johns Hopkins.\n*La gráfica solo incluye los países y territorios que han reportado 1,500 o más casos") +
   tema +
   theme(plot.title = element_text(size = 37), 
         plot.subtitle = element_text(size = 23), 
@@ -380,16 +383,16 @@ foo %>%
 novel_x_pais %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais),
          pais = str_replace(pais, "República", "Rep.")) %>%
-  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 10.09, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
-         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 10.09, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
+  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 12.09, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
+         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 12.09, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
          color_pais = ifelse(pais == "México", "a", "b")) %>%
-  filter(casos_confirmados >= 500,
+  filter(casos_confirmados >= 1000,
          muertes > 0) %>% 
   ggplot(aes(x = fct_reorder(pais, por_casos_conf_fallecieron), 
              y = por_casos_conf_fallecieron, 
              fill = color_pais)) +
   geom_col() +
-  scale_y_continuous(limits = c(0, 12.5),
+  scale_y_continuous(limits = c(0, 14),
                      expand = c(0, 0)) +
   scale_fill_manual(values = c("salmon", "black")) +
   coord_flip() +
@@ -400,7 +403,7 @@ novel_x_pais %>%
        x = NULL,
        y = NULL,
        fill = NULL,
-       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40\nFuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNotas: *La categoría \"casos confirmados\"se refiere a las personas que dieron positivo en la prueba de Covid-19.\nLa variable graficada fue calculada dividiendo el número de muertes entre el número de casos confirmados, por 100.\nLa gráfica solo incluye los países y territorios que han reportado 500 o más casos y al menos una muerte.") +
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40\nFuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNotas: *La categoría \"casos confirmados\"se refiere a las personas que dieron positivo en la prueba de Covid-19.\nLa variable graficada fue calculada dividiendo el número de muertes entre el número de casos confirmados, por 100.\nLa gráfica solo incluye los países y territorios que han reportado 1,000 o más casos y al menos una muerte.") +
   tema +
   theme(plot.title = element_text(size = 36), 
         plot.subtitle = element_text(size = 26), 
@@ -436,7 +439,7 @@ datos %>%
                date_labels = "%b-%d") +
   scale_y_continuous(labels = comma, 
                      # limits = c(0, 45000),
-                     breaks = seq(0, 80000, 5000), 
+                     breaks = seq(0, 200000, 10000), 
                      expand = c(0, 0)) +
   labs(title = "Número de nuevos casos de Covid-19 confirmados diariamente",
        subtitle = subtitulo_treemaps,
@@ -467,7 +470,7 @@ datos %>%
                date_labels = "%b-%d") +
   scale_y_continuous(labels = comma, 
                      expand = c(0, 0),
-                     breaks = seq(0, 5000, 250)) +
+                     breaks = seq(0, 20000, 1000)) +
   labs(title = "Número de casos confirmados de Covid-19 que fallecieron diariamente",
        subtitle = subtitulo_treemaps,
        x = "",
@@ -620,7 +623,7 @@ datos  %>%
   ggplot(aes(x = fecha_corte, y = casos_confirmados, group = pais)) +
   geom_line(color = "#F5772F", size = 1) +
   scale_x_date(date_breaks = "2 weeks", date_labels = "%b-%d") +
-  scale_y_continuous(breaks = seq(0, 250000, 25000),
+  scale_y_continuous(breaks = seq(0, 400000, 50000),
                      label = comma) +
   facet_wrap(~ pais, ncol = 5) +
   labs(title = "Evolución del número de casos confirmados de Covid-19 en los\n15 países con más casos",
@@ -691,19 +694,22 @@ faa <-
          # Construir variable de dummy_dias_primer_caso. Ésta tendrá un valor de uno para todos los días del 
          dummy_dias_primer_caso = primer_caso) %>% 
   fill(dummy_dias_primer_caso, .direction = "down") %>%
-  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0))) %>% 
+  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0)), 
+         # Restar 1 para empezar en el día 0
+         dias_primer_caso = dias_primer_caso - 1) %>% 
   ungroup() %>% 
-  # Corregir días transcurridos desde el primer caso en China porque el primero se detectó y reportó a la OMS el 31 de diciembre de 2018
+  # Corregir días transcurridos desde el primer caso en China porque el primero se detectó y reportó a la OMS el 31 de diciembre de 2019
   mutate(dias_primer_caso = ifelse(pais == "China", dias_primer_caso + 22, dias_primer_caso)) %>% 
-  filter(dias_primer_caso != 0) %>% 
+  filter(dias_primer_caso >= 0) %>% 
   mutate(color_linea = ifelse(pais == "México", "México", "Otros países"),
          etiquetas_paises_casos = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 12000 | fecha_corte == max(fecha_corte) & pais == "México", pais, ""),
-         
+         etiquetas_paises_casos_log = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 12000 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso >= 65, pais, ""),
          etiquetas_paises_muertes = ifelse(fecha_corte == max(fecha_corte) & muertes > 300 | fecha_corte == max(fecha_corte) & pais == "México", pais, ""),
          etiquetas_paises_muertes_log = ifelse(fecha_corte == max(fecha_corte) & muertes > 100 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso >= 65, pais, ""),
          pais = fct_relevel(pais, "México", after = Inf)) %>% 
   group_by(pais) %>% 
   mutate(puntito_final_casos = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 12000 | fecha_corte == max(fecha_corte) & pais == "México", casos_confirmados, NA),
+         puntito_final_casos_log = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 12000 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso >= 65, casos_confirmados, NA),
          puntito_final_muertes = ifelse(fecha_corte == max(fecha_corte) & muertes > 300 | fecha_corte == max(fecha_corte) & pais == "México", muertes, NA),
          puntito_final_muertes_log = ifelse(fecha_corte == max(fecha_corte) & muertes > 100 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso >= 65, muertes, NA)) %>% 
   ungroup()
@@ -720,9 +726,9 @@ faa %>%
                   fontface = "bold", 
                   # direction = "y",
                   size = 5) +
-  scale_x_continuous(breaks = c(1, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(faa$casos_confirmados) + max(faa$casos_confirmados)*0.1),
-                     breaks = seq(0, 300000, 20000),
+                     breaks = seq(0, 400000, 25000),
                      labels = comma) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
@@ -736,43 +742,20 @@ faa %>%
   ggsave(str_c(ruta_graficas_global, "17_01_evolucion_casos_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 15.5, height = 9)
 
 
-### Gráfica 17_02: Evolución del número acumulado de casos confirmados de Covid-19 desde el primer caso confirmado ----
+### Gráfica 17_02: Evolución del número acumulado de casos confirmados de Covid-19 desde el primer caso confirmado, log 10----
 
-faa <- 
-  datos %>% 
-  group_by(pais) %>% 
-  # Identificar el día en que se registró un caso en cada país 
-  mutate(primer_caso = ifelse(casos_confirmados > 0 & fecha_corte == as_date("2020-01-22") | casos_confirmados > 0 & lag(casos_confirmados) == 0, 1, NA),
-         # Construir variable de dummy_dias_primer_caso. Ésta tendrá un valor de uno para todos los días del 
-         dummy_dias_primer_caso = primer_caso) %>% 
-  fill(dummy_dias_primer_caso, .direction = "down") %>%
-  mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0))) %>% 
-  ungroup() %>% 
-  # Corregir días transcurridos desde el primer caso en China porque el primero se detectó y reportó a la OMS el 31 de diciembre de 2018
-  mutate(dias_primer_caso = ifelse(pais == "China", dias_primer_caso + 22, dias_primer_caso)) %>% 
-  filter(dias_primer_caso != 0) %>% 
-  mutate(color_linea = ifelse(pais == "México", "México", "Otros países"),
-         etiquetas_paises_casos = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 7000 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso > 65, pais, ""),
-         etiquetas_paises_muertes = ifelse(fecha_corte == max(fecha_corte) & muertes > 300 | fecha_corte == max(fecha_corte) & pais == "México", pais, ""),
-         pais = fct_relevel(pais, "México", after = Inf)) %>% 
-  group_by(pais) %>% 
-  mutate(puntito_final_casos = ifelse(fecha_corte == max(fecha_corte) & casos_confirmados > 7000 | fecha_corte == max(fecha_corte) & pais == "México" | fecha_corte == max(fecha_corte) & dias_primer_caso > 65, casos_confirmados, NA),
-         puntito_final_muertes = ifelse(fecha_corte == max(fecha_corte) & muertes > 300 | fecha_corte == max(fecha_corte) & pais == "México", muertes, NA)) %>% 
-  ungroup()
-
-set.seed(18)
 faa %>% 
   ggplot(aes(dias_primer_caso, casos_confirmados, group = pais, color = color_linea, alpha = color_linea)) +
   geom_line(size = 1) +
   geom_point(aes(x = dias_primer_caso, 
-                 y = puntito_final_casos),
+                 y = puntito_final_casos_log),
              size = 2) +
-  geom_text_repel(aes(label = etiquetas_paises_casos), 
+  geom_text_repel(aes(label = etiquetas_paises_casos_log), 
             # vjust = -0.8, 
             color = "grey30",
             fontface = "bold", 
             size = 5) +
-  scale_x_continuous(breaks = c(1, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
   scale_y_log10(labels = comma_format(accuracy = 1), 
                 # limits = c(1, 6e5),
                 breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
@@ -785,7 +768,7 @@ faa %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.") +
   tema +
   theme(legend.position = "none") +
-  ggsave(str_c(ruta_graficas_global, "17_02_evolucion_casos_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 15.5, height = 9)
+  ggsave(str_c(ruta_graficas_global, "17_02_evolucion_casos_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 15.5, height = 13)
 
 ### Gráfica 18_01: Evolución del número acumulado de muertes desde el primer caso confirmado ----
 
@@ -800,9 +783,9 @@ faa %>%
             color = "grey30", 
             fontface = "bold", 
             size = 5) +
-  scale_x_continuous(breaks = c(1, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(faa$muertes) + max(faa$muertes)*0.1),
-                     breaks = seq(0, 20000, 1000),
+                     breaks = seq(0, 40000, 2000),
                      labels = comma) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
@@ -813,7 +796,7 @@ faa %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.") +
   tema +
   theme(legend.position = "none") +
-  ggsave(str_c(ruta_graficas_global, "18_01_evolucion_casos_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "18_01_evolucion_muertes_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 
@@ -830,7 +813,7 @@ faa %>%
             color = "grey30", 
             fontface = "bold", 
             size = 5) +
-  scale_x_continuous(breaks = c(1, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
   scale_y_log10(labels = comma_format(accuracy = 1), 
                 # limits = c(1, 6e5),
                 breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
@@ -843,7 +826,7 @@ faa %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.") +
   tema +
   theme(legend.position = "none") +
-  ggsave(str_c(ruta_graficas_global, "18_02_evolucion_casos_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "18_02_evolucion_muertes_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 13)
 
 
 
@@ -878,9 +861,9 @@ novel_x_pais %>%
   #                 alpha = 0.9,
   #                 size = 5) +
   scale_x_continuous(labels = comma_format(accuracy = 1),
-                     breaks = c(12500, seq(0, 150e3, 25e3))) +
+                     breaks = c(seq(0, 5e5, 25e3))) +
   scale_y_continuous(labels = comma_format(accuracy = 1),
-                     breaks = c(seq(0, 2000, 500), seq(0, 16000, 2000))) +
+                     breaks = c(seq(0, 2000, 1000), seq(0, 16000, 2000))) +
   scale_color_manual(values = c("#1E6847", "grey70")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   scale_size(range = c(2, 6)) +

@@ -8,7 +8,7 @@ source("02_codigo/01_funciones_limpieza_bd.R")
 
 ### Importar datos ----
 datos <- 
-  read_csv(str_c("04_datos_generados/actualizacion_diaria_st/serie_de_tiempo_diaria_por_pais_2020_03_", 
+  read_csv(str_c("04_datos_generados/actualizacion_diaria_st/serie_de_tiempo_diaria_por_pais_2020_04_0", 
                  day(Sys.Date()), 
                  ".csv"))
 
@@ -21,10 +21,10 @@ datos <-
          cambio_diario_casos = ifelse(pais == "México", lead(cambio_diario_casos), cambio_diario_casos),
          en_tratamiento = ifelse(pais == "México", lead(en_tratamiento), en_tratamiento),
          por_casos_conf_fallecieron = ifelse(pais == "México", lead(por_casos_conf_fallecieron), por_casos_conf_fallecieron)) %>% 
-  mutate(casos_confirmados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 1215, casos_confirmados),
-         muertes = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 29, muertes),
-         recuperados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 35, recuperados),
-         total_casos = ifelse(pais == "México", 1215, total_casos), 
+  mutate(casos_confirmados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 2143, casos_confirmados),
+         muertes = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 94, muertes),
+         recuperados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 633, recuperados),
+         total_casos = ifelse(pais == "México", 2143, total_casos), 
          cambio_diario_casos = ifelse(pais == "México", casos_confirmados - lag(casos_confirmados), cambio_diario_casos),
          en_tratamiento = ifelse(pais == "México", casos_confirmados - muertes - recuperados, en_tratamiento),
          por_casos_conf_fallecieron = ifelse(pais == "México", round(muertes/casos_confirmados*100, 1), por_casos_conf_fallecieron)) 
