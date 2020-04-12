@@ -11,8 +11,11 @@ source("02_codigo/02_cortes_datos.R")
 dir_graficas <- 
   dir.create(file.path("03_graficas/01_graficas_analisis_mundial/", 
                        str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"))))
+
 ruta_graficas_global <- str_c("03_graficas/01_graficas_analisis_mundial/", 
                        str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"), "/"))
+
+ruta_graficas_diario <- "03_graficas/04_graficas_diarias/analisis_mundial/"
 
 ### Importar datos ----
 
@@ -28,7 +31,7 @@ sars <-
   mutate(fecha = as_date(fecha))
 
 novel_x_pais <- 
-  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_0",
+  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_",
                  day(Sys.Date()), 
                  ".csv")) %>% 
   clean_names() 
@@ -42,9 +45,9 @@ source("02_codigo/04_preparar_datos_series_de_tiempo.R")
 ## Para las gráficas 01 a 10 ----
 novel_x_pais <- 
   novel_x_pais %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 2143, casos_confirmados),
-         recuperados = ifelse(pais == "México", 633, recuperados),
-         muertes = ifelse(pais == "México", 94, muertes)) %>%  
+  mutate(casos_confirmados = ifelse(pais == "México", 4219, casos_confirmados),
+         recuperados = ifelse(pais == "México", 1772, recuperados),
+         muertes = ifelse(pais == "México", 273, muertes)) %>%  
   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
          por_casos_conf_fallecieron = round((muertes/casos_confirmados)*100, 2))
 
@@ -97,16 +100,18 @@ sars %>%
   tema +
   theme(plot.caption = element_text(size = 14),
         axis.title.y = element_text(angle = 90)) +
-  ggsave(str_c(ruta_graficas_global, "01_casos_confirmados_covid19_sars_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
+  ggsave(str_c(ruta_graficas_global, "01_casos_confirmados_covid19_sars_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "01_casos_confirmados_covid19_sars_log10.png"), dpi = 200, width = 16.2, height = 9) 
 
 ### Gráfica 02_01: Número de casos confirmados de COVID-19 ----
 novel %>% 
   ggplot(aes(x = dias_brote, y = casos_totales)) +
   geom_line(aes(x = dias_brote, y = casos_totales), color = "steelblue", size = 1) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.1, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
-  scale_x_continuous(limits = c(0, 130), breaks = seq(0, 300, 10)) +
-  scale_y_continuous(breaks = c(seq(0, 1.5e6, 100000)), labels = comma) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 9, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 9, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.1, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
+  scale_x_continuous(limits = c(0, 140), breaks = seq(0, 300, 10)) +
+  scale_y_continuous(breaks = c(seq(0, 1.5e6, 250000)), labels = comma) +
   labs(title = "Número de casos confirmados reportados de COVID-19 desde el comienzo\nde la epidemia",
        subtitle = subtitulo_lineas,
        x = "\nDías transcurridos desde la fecha en que      \nse considera que inició el brote      ",
@@ -114,16 +119,18 @@ novel %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNota: Se considera que el brote del COVID-19 inició el 8 de diciembre de 2019.") +
   tema +
   theme(plot.caption = element_text(size = 14)) +
-  ggsave(str_c(ruta_graficas_global, "02_01_casos_confirmados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "02_01_casos_confirmados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "02_01_casos_confirmados_covid19.png"), dpi = 200, width = 16, height = 9) 
 
 
 ### Gráfica 02_02: Número de casos confirmados de COVID-19, log 10 ----
 novel %>% 
   ggplot(aes(x = dias_brote, y = casos_totales)) +
   geom_line(aes(x = dias_brote, y = casos_totales), color = "steelblue", size = 1) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
-  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 8, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.6, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
-  scale_x_continuous(limits = c(0, 130), breaks = seq(0, 300, 10)) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 9, y = max(novel$casos_totales), label = "COVID-19", color = "steelblue", size = 8, hjust = 0.5) +
+  ggplot2::annotate(geom = "text", x = datos_novel$dias_brote + 9, y = max(novel$casos_totales) - max(novel$casos_totales) * 0.6, label = str_c("Casos: ", comma(datos_novel$casos_totales), "\nMuertos: ", comma(datos_novel$muertes)), color = "grey50", size = 5, hjust = 0.5) +
+  scale_x_continuous(limits = c(0, 140), breaks = seq(0, 300, 10)) +
   scale_y_log10(labels = comma_format(accuracy = 1), 
                 breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
   labs(title = "Número de casos confirmados reportados de COVID-19 desde el comienzo\nde la epidemia",
@@ -133,7 +140,9 @@ novel %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNota: Se considera que el brote del COVID-19 inició el 8 de diciembre de 2019.") +
   tema +
   theme(plot.caption = element_text(size = 14)) +
-  ggsave(str_c(ruta_graficas_global, "02_02_casos_confirmados_covid19_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "02_02_casos_confirmados_covid19_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "02_02_casos_confirmados_covid19_log10.png"), dpi = 200, width = 16, height = 9) 
 
 
 ### Gráfica 03_01: Número de muertes ----
@@ -147,7 +156,7 @@ sars %>%
   ggplot2::annotate(geom = "text", x = 255, y = 6500, label = "(2002-2003)", color = "salmon", size = 6, hjust = 0.5) +
   ggplot2::annotate(geom = "text", x = 255, y = 3000, label = str_c("Casos: ", comma(datos_sars$casos_totales), " | Muertos: ", comma(datos_sars$muertes)), color = "grey50", size = 5, hjust = 0.5) +
   scale_x_continuous(limits = c(0, 275), breaks = seq(0, 300, 25)) +
-  scale_y_continuous(breaks = c(seq(0, 80000, 5000)), labels = comma) +
+  scale_y_continuous(breaks = c(seq(0, 200000, 20000)), labels = comma) +
   labs(title = "Número de muertes provocadas por COVID-19 y SARS desde el comienzo de la\nrespectiva epidemia",
        subtitle = subtitulo_lineas,
        x = "\nDías transcurridos desde la fecha en que      \nse considera que inició el brote      ",
@@ -155,7 +164,9 @@ sars %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNota: En el caso del brote de SARS, la OMS inicialmente consideró que éste comenzó el 1 de febrero de 2003, pero el 28 de marzo de ese año determinó que la epidemia\nhabía iniciado el 1 de noviembre de 2002. En el caso del COVID-19, se considera que el brote inició el 8 de diciembre de 2019.") +
   tema +
   theme(plot.caption = element_text(size = 14)) +
-  ggsave(str_c(ruta_graficas_global, "03_01_muertes_novel_sars_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "03_01_muertes_novel_sars_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "03_01_muertes_novel_sars.png"), dpi = 200, width = 16, height = 9)
 
 ### Gráfica 03_02: Número de muertes log 10 ----
 sars %>% 
@@ -178,7 +189,9 @@ sars %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNota: En el caso del brote de SARS, la OMS inicialmente consideró que éste comenzó el 1 de febrero de 2003, pero el 28 de marzo de ese año determinó que la epidemia\nhabía iniciado el 1 de noviembre de 2002. En el caso del COVID-19, se considera que el brote inició el 8 de diciembre de 2019.") +
   tema +
   theme(plot.caption = element_text(size = 14)) +
-  ggsave(str_c(ruta_graficas_global, "03_02_muertes_novel_sars_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "03_02_muertes_novel_sars_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "03_02_muertes_novel_sars_log10.png"), dpi = 200, width = 16, height = 9)
 
 ### Gráfica 04: Porcentaje de casos confirmados que murieron  ----
 sars %>% 
@@ -200,6 +213,8 @@ sars %>%
   tema +
   theme(plot.caption = element_text(size = 14)) +
   ggsave(str_c(ruta_graficas_global, "04_por_casos_conf_fallecieron_covid19_sars_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "04_por_casos_conf_fallecieron_covid19_sars.png"), dpi = 200, width = 16, height = 9)
 
 
 ### Gráfica 05: Distribución de numero de casos confirmados y reportados de COVID-19 en en cada país y territorio ----
@@ -211,12 +226,12 @@ novel_x_pais %>%
   print(n = Inf)
 
 novel_x_pais %>% 
-  ggplot(aes(area = casos_confirmados, fill = log(casos_confirmados))) +
+  ggplot(aes(area = casos_confirmados, fill = (casos_confirmados))) +
   geom_treemap(col = "white") +
   geom_treemap_text(aes(label = pais), fontface = "bold", color = "white", alpha = 1, min.size = 0, grow = F) +
   geom_treemap_text(aes(label = paste(comma(casos_confirmados, accuracy = 1), "casos", sep = " ")), color = "white", padding.y = unit(7, "mm"),min.size = 0) +
   geom_treemap_text(aes(label = paste(comma(casos_confirmados/sum(casos_confirmados)*100, accuracy = 1), "% de los casos", sep = "")), color = "white", padding.y = unit(14, "mm"), min.size = 0, size = 14) +
-  scale_fill_gradient(low = "grey95", high = "#f85441", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
+  scale_fill_gradient(low = "grey95", high = "steelblue", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
   labs(title = "Número de casos confirmados y reportados de COVID-19 en cada\npaís y territorio",
        subtitle = subtitulo_treemaps,
        x = NULL,
@@ -226,7 +241,9 @@ novel_x_pais %>%
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_global, "05_casos_confirmados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9)
+  ggsave(str_c(ruta_graficas_global, "05_casos_confirmados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "05_casos_confirmados_covid19.png"), dpi = 200, width = 13, height = 9)
 
 
 ### Gráfica 06: Distribución de número de muertes provocadas por el COVID-19 en cada país y territorio ----
@@ -246,7 +263,9 @@ novel_x_pais %>%
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_global, "06_muertes_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9)
+  ggsave(str_c(ruta_graficas_global, "06_muertes_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "06_muertes_covid19.png"), dpi = 200, width = 13, height = 9)
 
 
 ### Gráfica 07: Distribución del número de pacientes que se recuperaron después de haber enfermado por el COVID-19 en países y territorios ----
@@ -266,7 +285,9 @@ novel_x_pais %>% #
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_global, "07_recuperados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9)
+  ggsave(str_c(ruta_graficas_global, "07_recuperados_covid19_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "07_recuperados_covid19.png"), dpi = 200, width = 13, height = 9)
 
 
 ### Gráfica 08: Estatus de los casos confirmados de COVID-19 en cada país y territorio ----
@@ -291,7 +312,7 @@ novel_x_pais %>%
          num_casos = ifelse(casos_confirmados == max(casos_confirmados), 
                             str_c(comma(casos_confirmados), " casos"),
                             comma(casos_confirmados))) %>% 
-  filter(casos_confirmados >= 1500) %>%
+  filter(casos_confirmados >= 2000) %>%
   ggplot(aes(x = fct_reorder(pais, casos_confirmados), 
              y = porcentaje,
              fill = estatus)) +
@@ -315,7 +336,7 @@ novel_x_pais %>%
        x = NULL,
        y = "\nPorcentaje                       ",
        fill = NULL,
-       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad de Johns Hopkins.\n*La gráfica solo incluye los países y territorios que han reportado 1,500 o más casos") +
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad de Johns Hopkins.\n*La gráfica solo incluye los países y territorios que han reportado 2,000 o más casos") +
   tema +
   theme(plot.title = element_text(size = 37), 
         plot.subtitle = element_text(size = 23), 
@@ -324,7 +345,9 @@ novel_x_pais %>%
         legend.position = c(0.165, -0.07), 
         legend.direction = "horizontal",
         legend.text = element_text(size = 18.5)) +
-  ggsave(str_c(ruta_graficas_global, "08_estatus_pacientes_covid19_paises_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 19.5, height = 14)
+  ggsave(str_c(ruta_graficas_global, "08_estatus_pacientes_covid19_paises_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 19.5, height = 14) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "08_estatus_pacientes_covid19_paises.png"), dpi = 200, width = 19.5, height = 14)
 
 ### Gráfica 09: Burbujas del top-10 de países y territorios con más casos confirmados de COVID-19 ----
 foo <- 
@@ -376,23 +399,23 @@ foo %>%
         axis.text.y = element_blank(), 
         panel.grid = element_blank(),
         plot.caption = element_text(size = 10)) +
-  ggsave(str_c(ruta_graficas_global, "09_top_10_mas_casos_confirmados", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 6)
+  ggsave(str_c(ruta_graficas_global, "09_top_10_mas_casos_confirmados", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 6) 
 
 
 ### Gráfica 10: Porcentaje de casos confirmados que murieron, por país y territorio ----
 novel_x_pais %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais),
          pais = str_replace(pais, "República", "Rep.")) %>%
-  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 12.09, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
-         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 12.09, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
+  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 13, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
+         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 13, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
          color_pais = ifelse(pais == "México", "a", "b")) %>%
-  filter(casos_confirmados >= 1000,
+  filter(casos_confirmados >= 2000,
          muertes > 0) %>% 
   ggplot(aes(x = fct_reorder(pais, por_casos_conf_fallecieron), 
              y = por_casos_conf_fallecieron, 
              fill = color_pais)) +
   geom_col() +
-  scale_y_continuous(limits = c(0, 14),
+  scale_y_continuous(limits = c(0, 17),
                      expand = c(0, 0)) +
   scale_fill_manual(values = c("salmon", "black")) +
   coord_flip() +
@@ -403,21 +426,22 @@ novel_x_pais %>%
        x = NULL,
        y = NULL,
        fill = NULL,
-       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40\nFuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNotas: *La categoría \"casos confirmados\"se refiere a las personas que dieron positivo en la prueba de Covid-19.\nLa variable graficada fue calculada dividiendo el número de muertes entre el número de casos confirmados, por 100.\nLa gráfica solo incluye los países y territorios que han reportado 1,000 o más casos y al menos una muerte.") +
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40\nFuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNotas: *La categoría \"casos confirmados\"se refiere a las personas que dieron positivo en la prueba de Covid-19.\nLa variable graficada fue calculada dividiendo el número de muertes entre el número de casos confirmados, por 100.\nLa gráfica solo incluye los países y territorios que han reportado 2,000 o más casos y al menos una muerte.") +
   tema +
   theme(plot.title = element_text(size = 36), 
         plot.subtitle = element_text(size = 26), 
         panel.grid = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
-  ggsave(str_c(ruta_graficas_global, "10_porcentaje_casos_confirmados_que_murieron", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13.2, height = 20)
+  ggsave(str_c(ruta_graficas_global, "10_porcentaje_casos_confirmados_que_murieron", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13.2, height = 20) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "10_porcentaje_casos_confirmados_que_murieron.png"), dpi = 200, width = 13.2, height = 20) 
 
 ### Gráfica 11: Número de nuevos casos de Covid-19 confirmados diariamente ----
 datos %>% 
   group_by(fecha_corte) %>% 
   summarise(total_casos_nuevos_diarios = sum(cambio_diario_casos, na.rm = T)) %>% 
   ungroup() %>% 
-  # print(n = Inf)
   ggplot(aes(x = fecha_corte, y = total_casos_nuevos_diarios)) +
   geom_col(fill = "steelblue") +
   ggplot2::annotate(geom = "text", 
@@ -450,17 +474,35 @@ datos %>%
   theme(plot.title = element_text(size = 36),
         axis.text.x = element_text(face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5)) +
   ggsave(str_c(ruta_graficas_global, "11_casos_nuevos_diarios_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "11_casos_nuevos_diarios.png"), dpi = 200, width = 16, height = 9) 
 
 
 ### Gráfica 12: Número diario de muertes de pacientes enfermos de Covid-19 ----
+datos %>% 
+  arrange(fecha_corte) %>% 
+  group_by(fecha_corte) %>%
+  summarise(mmuertes_diarias = sum(muertes)) %>% 
+  ungroup() %>% 
+  # tail()
+  summarise(cambio_diario_muertes = muertes - lag(muertes)) %>% 
+  ungroup() 
+  group_by(fecha_corte) %>% 
+  summarise(total_muertes_nuevas_diarios = sum(cambio_diario_muertes, 
+                                               na.rm = T)) %>% 
+  ungroup() %>% 
+  tail()
+
 datos %>% 
   arrange(pais, fecha_corte) %>% 
   group_by(pais) %>%
   mutate(cambio_diario_muertes = muertes - lag(muertes)) %>% 
   ungroup() %>% 
   group_by(fecha_corte) %>% 
-  summarise(total_muertes_nuevas_diarios = sum(cambio_diario_muertes, na.rm = T)) %>% 
+  summarise(total_muertes_nuevas_diarios = sum(cambio_diario_muertes, 
+                                               na.rm = T)) %>% 
   ungroup() %>% 
+  # tail()
   ggplot(aes(x = fecha_corte, y = total_muertes_nuevas_diarios)) +
   geom_col(fill = "black") +
   scale_x_date(breaks = c(seq(from = as_date("2020-01-22"), 
@@ -479,7 +521,9 @@ datos %>%
   tema +
   theme(plot.title = element_text(size = 32),
         axis.text.x = element_text(face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5)) +
-  ggsave(str_c(ruta_graficas_global, "12_ruta_graficas_global, muertes_nuevas_diarios_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "12_muertes_nuevas_diarios_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "12_muertes_nuevas_diarios.png"), dpi = 200, width = 16, height = 9) 
 
 
 ### Gráfica 13: Número diario de pacientes que se recuperaron de Covid-19 ----
@@ -499,7 +543,7 @@ datos %>%
                           max(datos$fecha_corte)), 
                date_labels = "%b-%d") +
   scale_y_continuous(labels = comma, 
-                     breaks = seq(0, 20000, 2000),
+                     breaks = seq(0, 30000, 2000),
                      expand = c(0, 0)) +
   labs(title = "Número de casos confirmados de Covid-19 que se recuperaron diariamente",
        subtitle = subtitulo_treemaps,
@@ -509,10 +553,12 @@ datos %>%
   tema +
   theme(plot.title = element_text(size = 30),
         axis.text.x = element_text(face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5)) +
-  ggsave(str_c(ruta_graficas_global, "13_recuperados_nuevos_diarios_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_global, "13_recuperados_nuevos_diarios_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "13_recuperados_nuevos_diarios.png"), dpi = 200, width = 16, height = 9) 
 
 
-### Gráfica 14_01: Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los 15 países con más casos confirmados ----
+### Gráfica 14_01: Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los 20 países con más casos confirmados ----
 datos %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais)) %>%
   group_by(pais) %>% 
@@ -528,7 +574,7 @@ datos %>%
   group_by(pais) %>% 
   mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T)) %>% 
   ungroup() %>% 
-  filter(ranking_total_casos < 16) %>%
+  filter(ranking_total_casos < 21) %>%
   # Alargar duración de los últimos siete días
   arrange(fecha_corte) %>% 
   mutate(show_time = case_when(fecha_corte >= Sys.Date() - 7 ~ 5,
@@ -541,7 +587,7 @@ datos %>%
   scale_x_date(date_breaks = "2 weeks", date_labels = "%b-%d") +
   scale_y_continuous(label = comma) +
   facet_wrap(~ pais, ncol = 5) +
-  labs(title = "Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los\n15 países con más casos confirmados",
+  labs(title = "Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los\n20 países con más casos confirmados",
        subtitle = str_c(subtitulo_treemaps, " | Misma escala en el eje vertical"),
        x = "\n",
        y = "Miles de casos\n",
@@ -552,9 +598,11 @@ datos %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         # panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_global, "14_01_numero_pacientes_en_tratamiento_top_15_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
+  ggsave(str_c(ruta_graficas_global, "14_01_numero_pacientes_en_tratamiento_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "14_01_numero_pacientes_en_tratamiento_top_20_casos_misma_escala.png"), dpi = 200, width = 16, height = 10) 
 
-### Gráfica 14_02: Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los 15 países con más casos confirmados ----
+### Gráfica 14_02: Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los 20 países con más casos confirmados ----
 datos %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais)) %>%
   group_by(pais) %>% 
@@ -570,7 +618,7 @@ datos %>%
   group_by(pais) %>% 
   mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T)) %>% 
   ungroup() %>% 
-  filter(ranking_total_casos < 16) %>%
+  filter(ranking_total_casos < 21) %>%
   # Alargar duración de los últimos siete días
   arrange(fecha_corte) %>% 
   mutate(show_time = case_when(fecha_corte >= Sys.Date() - 7 ~ 5,
@@ -583,7 +631,7 @@ datos %>%
   scale_x_date(date_breaks = "2 weeks", date_labels = "%b-%d") +
   scale_y_continuous(label = comma) +
   facet_wrap(~ pais, ncol = 5, scales = "free_y") +
-  labs(title = "Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los\n15 países con más casos confirmados",
+  labs(title = "Evolución del número de pacientes enfermos de Covid-19 en tratamiento en los\n20 países con más casos confirmados",
        subtitle = str_c(subtitulo_treemaps, " | Escala libre en el eje vertical"),
        x = "\n",
        y = "Miles de casos\n",
@@ -594,11 +642,12 @@ datos %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         # panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_global, "14_02_numero_pacientes_en_tratamiento_top_15_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
+  ggsave(str_c(ruta_graficas_global, "14_02_numero_pacientes_en_tratamiento_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "14_02_numero_pacientes_en_tratamiento_top_20_casos_escala_libre.png"), dpi = 200, width = 16, height = 10) 
 
 
-
-### Gráfica 15: Evolución del número de casos confirmados de Covid-19 en los 15 países y territorios con más casos además de China ----
+### Gráfica 15: Evolución del número de casos confirmados de Covid-19 en los 20 países y territorios con más casos además de China ----
 datos  %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais)) %>%
   group_by(pais) %>% 
@@ -614,7 +663,7 @@ datos  %>%
   group_by(pais) %>% 
   mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T)) %>% 
   ungroup() %>% 
-  filter(ranking_total_casos < 16) %>%
+  filter(ranking_total_casos < 21) %>%
   # Alargar duración de los últimos siete días
   arrange(fecha_corte) %>% 
   mutate(show_time = case_when(fecha_corte >= Sys.Date() - 7 ~ 5,
@@ -623,10 +672,10 @@ datos  %>%
   ggplot(aes(x = fecha_corte, y = casos_confirmados, group = pais)) +
   geom_line(color = "#F5772F", size = 1) +
   scale_x_date(date_breaks = "2 weeks", date_labels = "%b-%d") +
-  scale_y_continuous(breaks = seq(0, 400000, 50000),
+  scale_y_continuous(breaks = seq(0, 400000, 100000),
                      label = comma) +
   facet_wrap(~ pais, ncol = 5) +
-  labs(title = "Evolución del número de casos confirmados de Covid-19 en los\n15 países con más casos",
+  labs(title = "Evolución del número de casos confirmados de Covid-19 en los\n20 países con más casos",
        subtitle = subtitulo_treemaps,
        x = "\n",
        y = "Número de casos\n",
@@ -638,10 +687,12 @@ datos  %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_global, "15_evolucion_casos_confirmados_top_15_casos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
+  ggsave(str_c(ruta_graficas_global, "15_evolucion_casos_confirmados_top_20_casos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "15_evolucion_casos_confirmados_top_20_casos.png"), dpi = 200, width = 16, height = 10) 
 
 
-### Gráfica 16: Evolución del número de muertes provocadas por el Covid-19 en los 15 países y territorios con más casos además de China ----
+### Gráfica 16: Evolución del número de muertes provocadas por el Covid-19 en los 20 países y territorios con más casos además de China ----
 datos %>% 
   mutate(pais = ifelse(pais == "Crucero Diamond Princess", "Crucero", pais)) %>%
   group_by(pais) %>% 
@@ -657,7 +708,7 @@ datos %>%
   group_by(pais) %>% 
   mutate(ranking_total_muertes = na.locf(ranking_total_muertes, fromLast = T)) %>% 
   ungroup() %>% 
-  filter(ranking_total_muertes < 16) %>%
+  filter(ranking_total_muertes < 21) %>%
   # Alargar duración de los últimos siete días
   arrange(fecha_corte) %>% 
   mutate(show_time = case_when(fecha_corte >= Sys.Date() - 7 ~ 5,
@@ -666,10 +717,10 @@ datos %>%
   ggplot(aes(x = fecha_corte, y = muertes, group = pais)) +
   geom_line(size = 1, color = "steelblue") +
   scale_x_date(date_breaks = "2 weeks", date_labels = "%b-%d") +
-  scale_y_continuous(breaks = seq(0, 20000, 2500),
+  scale_y_continuous(breaks = seq(0, 40000, 5000),
                      label = comma) +
   facet_wrap(~ pais, ncol = 5) +
-  labs(title = "Evolución del número de muertes provocadas por el Covid-19 en los\n15 países con más muertes",
+  labs(title = "Evolución del número de muertes provocadas por el Covid-19 en los\n20 países con más muertes",
        subtitle = subtitulo_treemaps,
        x = "\n",
        y = "Número de muertes\n",
@@ -681,7 +732,9 @@ datos %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_global, "16_evolucion_muertes_top_15_casos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10)
+  ggsave(str_c(ruta_graficas_global, "16_evolucion_muertes_top_20_casos_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 10) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "16_evolucion_muertes_top_20_casos.png"), dpi = 200, width = 16, height = 10) 
 
 
 ### Gráfica 17_01: Evolución del número acumulado de casos confirmados de Covid-19 desde el primer caso confirmado ----
@@ -726,9 +779,9 @@ faa %>%
                   fontface = "bold", 
                   # direction = "y",
                   size = 5) +
-  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.02)) +
   scale_y_continuous(limits = c(0, max(faa$casos_confirmados) + max(faa$casos_confirmados)*0.1),
-                     breaks = seq(0, 400000, 25000),
+                     breaks = seq(0, 600000, 50000),
                      labels = comma) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
@@ -740,6 +793,8 @@ faa %>%
   tema +
   theme(legend.position = "none") +
   ggsave(str_c(ruta_graficas_global, "17_01_evolucion_casos_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 15.5, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "17_01_evolucion_casos_desde_primer_caso.png"), dpi = 200, width = 15.5, height = 9) 
 
 
 ### Gráfica 17_02: Evolución del número acumulado de casos confirmados de Covid-19 desde el primer caso confirmado, log 10----
@@ -755,7 +810,7 @@ faa %>%
             color = "grey30",
             fontface = "bold", 
             size = 5) +
-  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
+  scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.02)) +
   scale_y_log10(labels = comma_format(accuracy = 1), 
                 # limits = c(1, 6e5),
                 breaks = c(1, 3, 10, 30, 100, 300, 1000, 3e3, 10e3, 3e4, 10e4, 3e5, 10e5, 3e6, 10e6, 3e7, 10e7)) + 
@@ -769,6 +824,8 @@ faa %>%
   tema +
   theme(legend.position = "none") +
   ggsave(str_c(ruta_graficas_global, "17_02_evolucion_casos_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 15.5, height = 13)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "17_02_evolucion_casos_desde_primer_caso_log10.png"), dpi = 200, width = 15.5, height = 13) 
 
 ### Gráfica 18_01: Evolución del número acumulado de muertes desde el primer caso confirmado ----
 
@@ -785,7 +842,7 @@ faa %>%
             size = 5) +
   scale_x_continuous(breaks = c(0, seq(5, 120, 5)), limits = c(0, max(faa$dias_primer_caso) + max(faa$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(faa$muertes) + max(faa$muertes)*0.1),
-                     breaks = seq(0, 40000, 2000),
+                     breaks = seq(0, 60000, 2000),
                      labels = comma) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
@@ -797,6 +854,8 @@ faa %>%
   tema +
   theme(legend.position = "none") +
   ggsave(str_c(ruta_graficas_global, "18_01_evolucion_muertes_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "18_01_evolucion_muertes_desde_primer_caso.png"), dpi = 200, width = 16, height = 9) 
 
 
 
@@ -827,24 +886,23 @@ faa %>%
   tema +
   theme(legend.position = "none") +
   ggsave(str_c(ruta_graficas_global, "18_02_evolucion_muertes_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 13)
-
-
-
+# +
+#   ggsave(str_c(ruta_graficas_diario, "18_02_evolucion_muertes_desde_primer_caso_log10.png"), dpi = 200, width = 16, height = 13) 
 
 
 ### Gráfica 19_01: Relación entre el número acumulado de casos confirmados y el número de muertes por Covid-19 en cada país o territorio -----
 novel_x_pais %>% 
   mutate(pais = fct_relevel(pais, "México", after = Inf),
          color_mexico = ifelse(pais == "México", "México", "Otro"),
-         etiquetas_paises_muertes_log = ifelse(pais == "México" | casos_confirmados > 15000, as.character(pais), ""),
+         etiquetas_paises_muertes_log = ifelse(pais == "México" | casos_confirmados > 25000 | muertes > 2000, as.character(pais), ""),
          tamaño_paises_muertes_log = ifelse(pais == "México", 2, 1)) %>% 
-  ggplot(aes(x = casos_confirmados, 
+  ggplot(aes(x = casos_confirmados/1000, 
              y = muertes,
              color = color_mexico, 
              alpha = color_mexico,
              size = tamaño_paises_muertes_log)) +
   geom_point() +
-  geom_text(aes(label = etiquetas_paises_muertes_log),
+  geom_text_repel(aes(label = etiquetas_paises_muertes_log),
             vjust = -0.8,
             color = "grey30",
             fontface = "bold",
@@ -861,20 +919,22 @@ novel_x_pais %>%
   #                 alpha = 0.9,
   #                 size = 5) +
   scale_x_continuous(labels = comma_format(accuracy = 1),
-                     breaks = c(seq(0, 5e5, 25e3))) +
+                     breaks = c(seq(0, 500, 25))) +
   scale_y_continuous(labels = comma_format(accuracy = 1),
-                     breaks = c(seq(0, 2000, 1000), seq(0, 16000, 2000))) +
+                     breaks = c(seq(0, 2000, 1000), seq(0, 20000, 2000))) +
   scale_color_manual(values = c("#1E6847", "grey70")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   scale_size(range = c(2, 6)) +
   labs(title = "Relación entre el número acumulado de casos confirmados y el número de muertes\npor Covid-19 en cada país o territorio",
        subtitle = subtitulo_treemaps,
-       x = "\nCasos acumulados        ",
+       x = "\nCasos acumulados (miles)        ",
        y = "Muertes\n",
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_global, "19_01_relacion_casos_acumulados_muertes_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9) 
+  ggsave(str_c(ruta_graficas_global, "19_01_relacion_casos_acumulados_muertes_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "19_01_relacion_casos_acumulados_muertes.png"), dpi = 200, width = 16.5, height = 9) 
 
 ### Gráfica 19_02: Relación entre el número acumulado de casos confirmados y el número de muertes por Covid-19 en cada país o territorio, version log10 -----
 novel_x_pais %>% 
@@ -910,4 +970,271 @@ novel_x_pais %>%
   tema +
   theme(legend.position = "none")  +
   ggsave(str_c(ruta_graficas_global, "19_02_relacion_casos_acumulados_muertes_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "19_02_relacion_casos_acumulados_muertes_log10.png"), dpi = 200, width = 16, height = 9) 
 
+
+
+### Gráfica 20_01: Número de nuevos casos de Covid-19 confirmados diariamente en los 20 países con más casos confirmados ----
+datos %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_casos, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_casos)) +
+  geom_col(color = "steelblue") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de nuevos casos de Covid-19 confirmados diariamente\nen los 20 países con más casos confirmados",
+       subtitle = subtitulo_treemaps,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos diarios confirmados.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "20_01_numero_diario_casos_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "20_01_numero_diario_casos_top_20_casos_misma_escala.png"), dpi = 200, width = 16, height = 12) 
+
+
+### Gráfica 20_02: Número de nuevos casos de Covid-19 confirmados diariamente en los 20 países con más casos confirmados, escala libre ----
+datos %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_casos, 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_casos)) +
+  geom_col(color = "steelblue") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos de Covid-19 confirmados diariamente en los\n20 países con más casos confirmados",
+       subtitle = str_c(subtitulo_treemaps, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos diarios confirmados.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "20_02_numero_diario_casos_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "20_02_numero_diario_casos_top_20_casos_escala_libre.png"), dpi = 200, width = 16, height = 12) 
+
+
+### Gráfica 21_01: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad ----
+datos %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_muertes = muertes - lag(muertes)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_muertes = max(muertes)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_muertes = rank(-total_muertes, 
+                                      ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_muertes = ifelse(fecha_corte == max(fecha_corte), ranking_total_muertes, NA),
+         pais = fct_rev(fct_reorder(pais, total_muertes))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_muertes = na.locf(ranking_total_muertes, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_muertes, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_muertes <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_muertes)) +
+  geom_col(color = "grey10") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de casos confirmados de Covid-19 que fallecieron\ndiariamente en los 20 países con más muertes",
+       subtitle = subtitulo_treemaps,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de muertes diarias.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "21_01_numero_diario_muertes_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "21_01_numero_diario_muertes_top_20_casos_misma_escala.png"), dpi = 200, width = 16, height = 12) 
+
+
+### Gráfica 21_02: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad, escala libre ----
+datos %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_muertes = muertes - lag(muertes)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_muertes = max(muertes)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_muertes = rank(-total_muertes, 
+                                      ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_muertes = ifelse(fecha_corte == max(fecha_corte), ranking_total_muertes, NA),
+         pais = fct_rev(fct_reorder(pais, total_muertes))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_muertes = na.locf(ranking_total_muertes, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_muertes, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_muertes <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_muertes)) +
+  geom_col(color = "grey10") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos confirmados de Covid-19 que fallecieron\ndiariamente en los 20 países con más muertes",
+       subtitle = str_c(subtitulo_treemaps, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de muertes diarias.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "21_02_numero_diario_muertes_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "21_02_numero_diario_muertes_top_20_casos_escala_libre.png"), dpi = 200, width = 16, height = 12) 
+
+
+
+### Gráfica 22_01: Número de casos confirmados de Covid-19 que se recuperaron diariamente en los 20 países con más casos ----
+datos %>% 
+  filter(!str_detect(pais, "Crucero")) %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_recuperados = recuperados - lag(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_casos = max(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_recuperados, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_recuperados)) +
+  geom_col(color = "#41ab5d") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de casos confirmados de Covid-19 que se recuperaron\ndiariamente en los 20 países con más casos",
+       subtitle = subtitulo_treemaps,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos recuperados diariamente.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "22_01_numero_diario_recuperados_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12) 
+# +
+#   ggsave(str_c(ruta_graficas_diario, "22_01_numero_diario_recuperados_top_20_casos_misma_escala.png"), dpi = 200, width = 16, height = 12) 
+
+
+### Gráfica 22_02: Número de casos confirmados de Covid-19 que se recuperaron diariamente en los 20 países con más casos, escala libre ----
+datos %>% 
+  filter(!str_detect(pais, "Crucero")) %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_recuperados = recuperados - lag(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_casos = max(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_recuperados, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_recuperados)) +
+  geom_col(color = "#41ab5d") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos confirmados de Covid-19 que se recuperaron\ndiariamente en los 20 países con más casos",
+       subtitle = str_c(subtitulo_treemaps, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos recuperados diariamente.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_global, "22_02_numero_diario_recuperados_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+# +
+#   ggsave(str_c(ruta_graficas_diario, "22_02_numero_diario_recuperados_top_20_casos_escala_libre.png"), dpi = 200, width = 16, height = 12) 

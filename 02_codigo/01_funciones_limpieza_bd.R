@@ -138,6 +138,7 @@ limpiar_nombres_paises <-
                                         country_region == "Saint Lucia" ~ "Santa Lucía",
                                         country_region == "Saint Barthelemy" ~ "San Bartolomé",
                                         country_region == "Saint Martin" ~ "Sint Maarten",
+                                        country_region == "Sao Tome and Principe" ~ "Santo Tomé y Príncipe",
                                         country_region == "Singapore" ~ "Singapur",
                                         country_region == "South Africa" ~ "Sudáfrica",
                                         country_region == "Sudan" ~ "Sudán",

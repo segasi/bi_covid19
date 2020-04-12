@@ -24,7 +24,7 @@ ruta_graficas_america <- str_c("03_graficas/02_graficas_analisis_america/",
 
 # Automático
 datos_diarios <- 
-  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_0", 
+  read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_", 
                  day(Sys.Date()),
                  ".csv"))
 
@@ -47,7 +47,7 @@ bd_america_st <-
   filter(continente == "América", 
          # Eliminar países con menos de 1M de personas
          !pais %in% c("Guayana Francesa", "Guyana", "Santa Lucía", "Surinam", "San Vincente y las Granadinas", "Martinica", "Curacao", "Aruba", "Islas Caimán", "Antigua y Barbuda")) %>% 
-  select(pais:recuperados)
+  select(pais:recuperados, total_casos, cambio_diario_casos)
 
 bd_america_st %>% 
   filter(pais == "México") %>% 
@@ -56,20 +56,20 @@ bd_america_st %>%
 ### Ajustar datos de México con datos actualizados a las 19 hrs. ----
 bd_america <- 
   bd_america %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 2143, casos_confirmados),
-         muertes = ifelse(pais == "México", 94, muertes),
-         recuperados = ifelse(pais == "México", 633, recuperados)
+  mutate(casos_confirmados = ifelse(pais == "México", 4219, casos_confirmados),
+         muertes = ifelse(pais == "México", 273, muertes),
+         recuperados = ifelse(pais == "México", 1772, recuperados)
          ) %>%  
   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
-         tasa_letalidad = round((muertes/casos_confirmados)*100, 2))
+         por_casos_conf_fallecieron = round((muertes/casos_confirmados)*100, 2))
 
   
 
 ### Gráfica 01: Número de casos confirmados de COVID-19 en países de América -----
 bd_america %>%   
   mutate(color_barras = ifelse(pais == "México", "México", "Los demás"),
-         etiquetas_gdes = ifelse(casos_confirmados > 15000, comma(casos_confirmados, accuracy = 1), ""),
-         etiquetas_peques = ifelse(casos_confirmados <= 15000, comma(casos_confirmados, accuracy = 1), "")) %>% 
+         etiquetas_gdes = ifelse(casos_confirmados > 55000, comma(casos_confirmados, accuracy = 1), ""),
+         etiquetas_peques = ifelse(casos_confirmados <= 55000, comma(casos_confirmados, accuracy = 1), "")) %>% 
   ggplot(aes(x = fct_reorder(pais, casos_confirmados), 
              y = casos_confirmados,
              fill = color_barras)) +
@@ -102,7 +102,7 @@ bd_america %>%
   geom_treemap_text(aes(label = pais), fontface = "bold", color = "white", alpha = 1, min.size = 0, grow = F) +
   geom_treemap_text(aes(label = paste(comma(casos_confirmados, accuracy = 1), "casos", sep = " ")), color = "white", padding.y = unit(7, "mm"),min.size = 0) +
   geom_treemap_text(aes(label = paste(comma(casos_confirmados/sum(casos_confirmados)*100, accuracy = 1), "% del total", sep = "")), color = "white", padding.y = unit(14, "mm"), min.size = 0, size = 14) +
-  scale_fill_gradient(low = "grey95", high = "#f85441", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
+  scale_fill_gradient(low = "grey95", high = "steelblue", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
   labs(title = "Número de casos confirmados y reportados de COVID-19 en países\nde América*",
        subtitle = subtitulo,
        x = NULL,
@@ -347,9 +347,9 @@ foo %>%
                   direction = "x",
                   size = 5) +
   scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
-  scale_y_continuous(limits = c(0, max(foo$casos_confirmados) + max(foo$casos_confirmados)*0.1),
+  scale_y_continuous(limits = c(0, max(foo$casos_confirmados) + max(foo$casos_confirmados)*0.05),
                      label = comma, 
-                     breaks = seq(0, 12000, 1000)) +
+                     breaks = seq(0, 40000, 2000)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en países de América Latina*",
@@ -438,10 +438,10 @@ foo %>%
                   fontface = "bold",
                   direction = "x",
                   size = 5) +
-  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
-  scale_y_continuous(limits = c(0, max(foo$muertes) + max(foo$muertes)*0.1),
+  scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.02)) +
+  scale_y_continuous(limits = c(0, max(foo$muertes) + max(foo$muertes)*0.02),
                      label = comma, 
-                     breaks = seq(0, 500, 50)) +
+                     breaks = seq(0, 2000, 100)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   labs(title = "Evolución del número acumulado de muertes desde el primer caso confirmado\nen países de América Latina*",
@@ -488,3 +488,287 @@ foo %>%
   theme(legend.position = "none")  +
   ggsave(str_c(ruta_graficas_america, "11_02_evolucion_muertes_paises_america_latina_desde_primer_caso_log_11_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
+
+
+### Gráfica 12_01: Número de nuevos casos de Covid-19 confirmados diariamente en los 20 países con más casos en América confirmados ----
+bd_america_st %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_casos, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_casos)) +
+  geom_col(color = "steelblue") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de nuevos casos de Covid-19 confirmados diariamente\nen los 20 países de América con más casos",
+       subtitle = subtitulo,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos diarios confirmados.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "12_01_numero_diario_casos_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+### Gráfica 12_02: Número de nuevos casos de Covid-19 confirmados diariamente en los 20 países con más casos en América confirmados, escala libre ----
+bd_america_st %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_casos, 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_casos)) +
+  geom_col(color = "steelblue") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos de Covid-19 confirmados diariamente en los\n20 países de América con más casos",
+       subtitle = str_c(subtitulo, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos diarios confirmados.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "12_02_numero_diario_casos_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+### Gráfica 13_01: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad ----
+bd_america_st %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_muertes = muertes - lag(muertes)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_muertes = max(muertes)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_muertes = rank(-total_muertes, 
+                                      ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_muertes = ifelse(fecha_corte == max(fecha_corte), ranking_total_muertes, NA),
+         pais = fct_rev(fct_reorder(pais, total_muertes))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_muertes = na.locf(ranking_total_muertes, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_muertes, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_muertes <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_muertes)) +
+  geom_col(color = "grey10") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de casos confirmados de Covid-19 que fallecieron\ndiariamente en los 20 países de América con más muertes",
+       subtitle = subtitulo,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de muertes diarias.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "13_01_numero_diario_muertes_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+### Gráfica 13_02: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad, escala libre ----
+bd_america_st %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_muertes = muertes - lag(muertes)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_muertes = max(muertes)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_muertes = rank(-total_muertes, 
+                                      ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_muertes = ifelse(fecha_corte == max(fecha_corte), ranking_total_muertes, NA),
+         pais = fct_rev(fct_reorder(pais, total_muertes))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_muertes = na.locf(ranking_total_muertes, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_muertes, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_muertes <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_muertes)) +
+  geom_col(color = "grey10") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos confirmados de Covid-19 que fallecieron\ndiariamente en los 20 países de América con más muertes",
+       subtitle = str_c(subtitulo, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de muertes diarias.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "13_02_numero_diario_muertes_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+
+### Gráfica 14_01: Número de casos confirmados de Covid-19 que se recuperaron diariamente en los 20 países con más casos en América ----
+bd_america_st %>% 
+  filter(!str_detect(pais, "Crucero")) %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_recuperados = recuperados - lag(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_casos = max(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_recuperados, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_recuperados)) +
+  geom_col(color = "#41ab5d") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais) +
+  labs(title = "Número de casos confirmados de Covid-19 que se recuperaron\ndiariamente en los 20 países de América con más casos",
+       subtitle = subtitulo,
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos recuperados diariamente.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 15),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "14_01_numero_diario_recuperados_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+### Gráfica 14_02: Número de casos confirmados de Covid-19 que se recuperaron diariamente en los 20 países con más casos en América, escala libre ----
+bd_america_st %>% 
+  filter(!str_detect(pais, "Crucero")) %>% 
+  arrange(pais, fecha_corte) %>% 
+  group_by(pais) %>%
+  mutate(cambio_diario_recuperados = recuperados - lag(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(pais) %>% 
+  mutate(total_casos = max(recuperados)) %>% 
+  ungroup() %>% 
+  group_by(fecha_corte) %>%
+  mutate(ranking_total_casos = rank(-total_casos, 
+                                    ties.method = "first")) %>% 
+  ungroup() %>% 
+  mutate(ranking_total_casos = ifelse(fecha_corte == max(fecha_corte), ranking_total_casos, NA),
+         pais = fct_rev(fct_reorder(pais, total_casos))) %>% 
+  group_by(pais) %>% 
+  mutate(ranking_total_casos = na.locf(ranking_total_casos, fromLast = T),
+         promedio_movil_cinco_dias = rollmean(cambio_diario_recuperados, k = 5, align = 'right', fill = NA)) %>% 
+  ungroup() %>%
+  filter(ranking_total_casos <= 20) %>% 
+  ggplot(aes(x = fecha_corte, y = cambio_diario_recuperados)) +
+  geom_col(color = "#41ab5d") +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 1) +
+  scale_y_continuous(labels = comma) +
+  facet_wrap(~ pais, scales = "free_y") +
+  labs(title = "Número de casos confirmados de Covid-19 que se recuperaron\ndiariamente en los 20 países de América con más casos",
+       subtitle = str_c(subtitulo, " | Escala libre en el eje vertical"),
+       x = "",
+       y = "Número\n",
+       caption = "</span><br>Elaborado por @segasi para el Buró de Investigación de ADN40 / Fuente: CSSE de la Universidad Johns Hopkins<br><br>Nota: La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos recuperados diariamente.</span>") +
+  tema +
+  theme(plot.title = element_text(size = 35),
+        plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 18),
+        axis.text.x = element_text(size = 13, face = "bold", family = "Didact Gothic Regular", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 13),
+        axis.title.y = element_text(size = 22),
+        panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
+        panel.spacing.x = unit(1.5, "lines"),
+        strip.text = element_text(size = 18),
+        strip.background = element_rect(fill = "grey70", color = "grey70")) +
+  ggsave(str_c(ruta_graficas_america, "14_02_numero_diario_recuperados_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+
+
+### Gráfica 15: Porcentaje de casos confirmados que murieron, por país y territorio ----
+bd_america %>% 
+  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 14, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
+         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 14, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
+         color_pais = ifelse(pais == "México", "a", "b")) %>%
+  filter(muertes > 0) %>% 
+  ggplot(aes(x = fct_reorder(pais, por_casos_conf_fallecieron), 
+             y = por_casos_conf_fallecieron, 
+             fill = color_pais)) +
+  geom_col() +
+  scale_y_continuous(limits = c(0, 15),
+                     expand = c(0, 0)) +
+  scale_fill_manual(values = c("salmon", "black")) +
+  coord_flip() +
+  geom_text(aes(label = etiqueta_grandes), color = "white", fontface = "bold", family = "Roboto", hjust = 1.05, size = 5) +
+  geom_text(aes(label = etiqueta_chicos), color = "grey30", fontface = "bold", family = "Roboto", hjust = -0.05, size = 5) +
+  labs(title = "Porcentaje de casos confirmados de Covid-19\nque murieron en países de América*",
+       subtitle = subtitulo,
+       x = NULL,
+       y = NULL,
+       fill = NULL,
+       caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40\nFuentes: OMS y el CSSE de la Universidad de Johns Hopkins\n\nNotas: *Solo se incluyen países de América con una población de 1 millón o más de personas. La categoría \"casos \nconfirmados\"se refiere a las personas que dieron positivo en la prueba de Covid-19. La variable graficada fue calculada\ndividiendo el número de muertes entre el número de casos confirmados, por 100.") +
+  tema +
+  theme(plot.title = element_text(size = 36), 
+        plot.subtitle = element_text(size = 26), 
+        panel.grid = element_blank(), 
+        axis.text.x = element_blank(),
+        legend.position = "none") +
+  ggsave(str_c(ruta_graficas_america, "15_porcentaje_casos_confirmados_que_murieron_en_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13.2, height = 15) 

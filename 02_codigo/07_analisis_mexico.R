@@ -7,7 +7,7 @@ source("02_codigo/00_paquetes_setup_tema.R")
 
 ### Definir cortes de datos ----
 subtitulo_mx <-  str_c("Cifras a las 19:00 hrs. del ", 
-                       day(Sys.Date()) - 1,
+                       day(Sys.Date()),
                        " de abril de 2020 (CDMX)")
 
 ### Generar folder para guardar las gráficas ----
@@ -57,14 +57,14 @@ mx_serendipia <-
 
 # A pesar de que el primer corte publicado por la S. Salud es del 16 de marzo, comienzo a usar los datos de Serendipia el 17 de marzo para utilizar el archivo de Katia Guzmán del 16 de marzo. Ésto, porque el archivo de Katia incluye la fecha en que se publicaron los datos de los 82 casos registrados entre el 27 de febrero y el 16 de marzo.
 
-dia_marzo <-  17:31
+dia_marzo <-  c(17:25, 27:31)
 
 # Loop para obtener datos
 for (i in seq_along(dia_marzo)) {
   datos_dia <- 
     getData(where = "Mexico", 
             type = "confirmed", 
-            # date = "17/03/2020",
+            # date = "26/03/2020",
             date = str_c(dia_marzo[i], "/03/2020"),
             source = "Serendipia", neat = F) %>% 
     clean_names() %>% 
@@ -78,10 +78,30 @@ for (i in seq_along(dia_marzo)) {
     mutate(n_caso = as.character(n_caso))
 }
 
+# Procesar por separado los datos del 2020-03-26 porque la estructrura del archivo es diferente ----
+corte_26 <- 
+  getData(where = "Mexico", 
+        type = "confirmed", 
+        date = "26/03/2020",
+        source = "Serendipia", neat = F) %>% 
+  row_to_names(row_number = 1) %>% 
+  clean_names() %>% 
+  mutate(fecha_corte = make_date("2020", "03", "26"),
+         edad = as.numeric(edad),
+         n_caso = as.character(n_caso),
+         identificacion_de_covid_19_por_rt_pcr_secuencia_de_dna = NA,
+         identificacion_de_covid_19_por_rt_pcr = NA) %>% 
+  filter(!str_detect(n_caso, "Fuente|Recuper"))
+
+mx_serendipia <- 
+  mx_serendipia %>% 
+  bind_rows(corte_26) %>% 
+  arrange(fecha_corte)
+
 # Obtener cortes de abril ----
 
 # Definir fechas de las cuales obtener cortes
-dia_abril <-  1:day(Sys.Date() - 1)
+dia_abril <-  1:day(Sys.Date())
 
 
 # Loop para obtener datos
@@ -90,7 +110,7 @@ for (i in seq_along(dia_abril)) {
     getData(where = "Mexico", 
             type = "confirmed", 
             # date = "17/03/2020",
-            date = str_c("0", dia_abril[i], "/04/2020"),
+            date = str_c(dia_abril[i], "/04/2020"),
             source = "Serendipia", neat = F) %>% 
     clean_names() %>% 
     mutate(fecha_corte = make_date("2020", "04", as.character(dia_abril[i])),
@@ -102,6 +122,8 @@ for (i in seq_along(dia_abril)) {
     bind_rows(datos_dia) %>% 
     mutate(n_caso = as.character(n_caso))
 }
+
+
 
 ### Eliminar observaciones con missing values ----
 mx_serendipia <- 
@@ -145,9 +167,14 @@ mx_muertes_x_dia <-
              sheet = "por_dia") %>% 
   mutate(fecha_corte = as_date(fecha_corte))
 
+### Importar serie de tiempo de datos de muertes por COVID ----
+muertes_mx_st <- 
+  read_csv("https://raw.githubusercontent.com/mariorz/covid19-mx-time-series/master/data/covid19_deaths_mx.csv") %>% 
+  pivot_longer(-Estado, names_to = "fecha_corte", values_to = "muertes") %>% 
+  mutate(fecha_corte = dmy(fecha_corte))
+
 ### Importar datos poblacionales de CONAPO ----
 source("02_codigo/08_importar_preparar_datos_conapo.R")
-
 
 
 ### Generar tibble con datos NACIONALES diarios ----
@@ -191,6 +218,17 @@ mx_diario_edo <-
   rbind(foo_guzmart_edo , foo_serendipia_edo) %>% 
   arrange(estado, fecha_corte)
 
+# Homogeneizar nombres de estados
+mx_diario_edo <- 
+  mx_diario_edo %>% 
+  mutate(estado = case_when(estado == "Distrito Federal" ~ "Ciudad de México",
+                            estado == "Mexico" ~ "México",
+                            estado == "Michoacan" ~ "Michoacán",
+                            estado == "Nuevo Leon" ~ "Nuevo León",
+                            estado == "San Luis Potosi" ~ "San Luis Potosí",
+                            estado == "Yucatan" ~ "Yucatán",
+                            TRUE ~ estado))
+  
 # Completar valores faltantes
 mx_diario_edo <- 
   mx_diario_edo %>% 
@@ -217,6 +255,17 @@ mx_ultimo_corte_edo <-
   summarise(casos_acumulados = n()) %>% 
   ungroup()
 
+# Homogeneizar nombres de estados
+mx_ultimo_corte_edo <- 
+  mx_ultimo_corte_edo %>% 
+  mutate(estado = case_when(estado == "Distrito Federal" ~ "Ciudad de México",
+                            estado == "Mexico" ~ "México",
+                            estado == "Michoacan" ~ "Michoacán",
+                            estado == "Nuevo Leon" ~ "Nuevo León",
+                            estado == "San Luis Potosi" ~ "San Luis Potosí",
+                            estado == "Yucatan" ~ "Yucatán",
+                            TRUE ~ estado))
+
 
 ### Gráfica 01: Número acumulado de casos confirmados de Covid-19 confirmados en México ----
 foo <- 
@@ -241,7 +290,7 @@ foo %>%
                             by = 1), 
                date_labels = "%b-%d", 
                limits = c(as_date("2020-02-27"), max(foo$fecha_corte))) +
-  scale_y_continuous(breaks = seq(0, 3000, 200),
+  scale_y_continuous(breaks = seq(0, 5000, 500),
                      limits = c(-10, max(foo$casos_acumulados) + max(foo$casos_acumulados)*0.1),
                      expand = c(0, 0),
                      labels = comma) +
@@ -262,21 +311,34 @@ foo %>%
 
 
 ### Gráfica 02: Número de nuevos casos de Covid-19 confirmados diariamente en México ----
-mx_diario_nal %>% 
+foo <- 
+  mx_diario_nal %>% 
   mutate(num_casos_diarios = casos_acumulados - lag(casos_acumulados),
-         num_casos_diarios = ifelse(is.na(num_casos_diarios) & fecha_corte == as_date("2020-02-27"), 1, num_casos_diarios)) %>% 
+         num_casos_diarios = ifelse(is.na(num_casos_diarios) & fecha_corte == as_date("2020-02-27"), 1, num_casos_diarios),
+         promedio_movil_cinco_dias = rollmean(num_casos_diarios, k = 5, align = 'right', fill = NA)) 
+
+
+foo %>% 
+  tail()
+
+
+foo %>% 
   ggplot(aes(x = fecha_corte, y = num_casos_diarios)) +
   geom_col(fill = "#1E6847", alpha = 0.9) +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 2) +
   scale_x_date(date_breaks = "1 day", date_labels = "%b-%d", expand = c(0, 0)) +
-  scale_y_continuous(breaks = seq(0, 400, 20), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 500, 50), 
+                     expand = c(0, 0),
+                     limits = c(0, max(foo$num_casos_diarios) + max(foo$num_casos_diarios)*0.1)) +
   labs(title = "Número de casos nuevos de Covid-19 confirmados diariamente en México",
        subtitle = subtitulo_mx,
        x = "",
        y = "Número\n",
-       caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y  @SerendipiaData.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".") +
+       caption = "</span><br>Elaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}<br>con cifras curadas por @guzmart_ y @SerendipiaData.<br><br>Nota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de<br>caso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".<br><br>La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de casos confirmados.</span>") +
   tema +
   theme(plot.title = element_text(size = 32),
         plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 16),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         axis.text.y = element_text(size = 20),
         axis.title.y = element_text(size = 20),
@@ -290,7 +352,7 @@ mx_diario_nal %>%
 mx_ultimo_corte_edo %>% 
   ggplot(aes(x = casos_acumulados, y = fct_reorder(estado, casos_acumulados))) +
   geom_col(fill = "#1E6847", alpha = 0.9) +
-  scale_x_continuous(breaks = seq(0, 1000, 25), 
+  scale_x_continuous(breaks = seq(0, 1000, 100), 
                      limits = c(0, max(mx_ultimo_corte_edo$casos_acumulados) + max(mx_ultimo_corte_edo$casos_acumulados)*0.05),
                      expand = c(0, 0)) +
   labs(title = "Número de casos de Covid-19 confirmados en cada entidad",
@@ -338,7 +400,7 @@ mx_diario_edo %>%
   scale_fill_gradient(low = "#ffffff", 
                       high = "#1E6847", 
                       breaks = 0:4,
-                      labels = c(str_c("0", " (mín.)"), "", "", "", str_c(max(mx_diario_edo$casos_acumulados), " (máx.)"))
+                      labels = c(str_c("0", " (mín.)"), "", "", "", str_c(comma(max(mx_diario_edo$casos_acumulados)), " (máx.)"))
   ) +
   labs(title = "Número acumulado de casos confirmados de Covid-19 en cada entidad de México",
        subtitle = subtitulo_mx,
@@ -360,6 +422,7 @@ mx_diario_edo %>%
 ### Gráfica 06_01: Evolución del número acumulado de casos confirmados desde el primer caso confirmado en las entidades de México ----
 foo <- 
   mx_diario_edo %>% 
+  # filter(fecha_corte < as_date("2020-04-11")) %>% 
   mutate(estado = case_when(estado == "Ciudad de México" ~ "CDMX",
                             estado == "Baja California" ~ "BC",
                             estado == "Baja California Sur" ~ "BCS",
@@ -373,7 +436,7 @@ foo <-
   mutate(dias_primer_caso = cumsum(replace_na(dummy_dias_primer_caso, 0)) - 1) %>% 
   ungroup() %>% 
   mutate(puntito_final = ifelse(fecha_corte == max(fecha_corte), casos_acumulados, NA), 
-         etiquetas_entidad = ifelse(fecha_corte == max(fecha_corte) & casos_acumulados >= 70 | fecha_corte == max(fecha_corte) & dias_primer_caso > 22, estado, ""),
+         etiquetas_entidad = ifelse(fecha_corte == max(fecha_corte) & casos_acumulados >= 100 | fecha_corte == max(fecha_corte) & dias_primer_caso >= 30, estado, ""),
          etiquetas_entidad_log = ifelse(fecha_corte == max(fecha_corte), estado, "")) %>% 
   filter(dias_primer_caso > -1)
 
@@ -397,10 +460,10 @@ foo %>%
                   # bg.colour = 'white',
                   fontface = "bold",
                   size = 5) +
-  scale_x_continuous(breaks = c(seq(0, 100, 5), max(foo$dias_primer_caso)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
-  scale_y_continuous(limits = c(0, max(foo$casos_acumulados) + max(foo$casos_acumulados)*0.1),
+  scale_x_continuous(breaks = c(seq(0, 100, 5), max(foo$dias_primer_caso)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.01)) +
+  scale_y_continuous(limits = c(0, max(foo$casos_acumulados) + max(foo$casos_acumulados)*0.05),
                      label = comma, 
-                     breaks = seq(0, 600, 50)) +
+                     breaks = seq(0, 2000, 100)) +
   labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en las entidades de México*",
        subtitle = subtitulo_mx,
        x = "\nDías desde el primer caso confirmado  ",
@@ -442,7 +505,7 @@ foo %>%
        caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y  @SerendipiaData.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_mx, "06_02_evolucion_casos_paises_america_latina_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_mx, "06_02_evolucion_casos_paises_america_latina_desde_primer_caso_log10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 07: Número de casos confirmados de Covid-19, por género y edad ----
@@ -456,11 +519,10 @@ foo <-
                                 edad > 50 & edad <= 60 ~ "51-60",
                                 edad > 60 & edad <= 70 ~ "61-70",
                                 edad > 70 & edad <= 80 ~ "71-80",
-                                edad > 80 ~ "Más de 80 años",
-  ),
-  genero = ifelse(sexo == "F", "Mujeres", "Hombres"),
-  genero = fct_relevel(genero, "Mujeres", "Hombres"))%>% 
-  count(genero, rango_edad) 
+                                edad > 80 ~ "Más de 80 años"),
+         genero = ifelse(sexo == "FEMENINO", "Mujeres", "Hombres"),
+         genero = fct_relevel(genero, "Mujeres", "Hombres")) %>% 
+  count(genero, rango_edad)
 
 ## Verificar
 foo %>% 
@@ -470,8 +532,8 @@ foo %>%
   ggplot(aes(x = str_wrap(rango_edad, width = 8), y = n, fill = n)) +
   geom_col(fill = "#1E6847", alpha = 0.9) +
   scale_y_continuous(expand = c(0, 0), 
-                     limits = c(0, max(foo$n) + max(foo$n)*0.1),
-                     breaks = seq(0, 400, 20)) +
+                     limits = c(0, max(foo$n) + max(foo$n)*0.05),
+                     breaks = seq(0, 900, 50)) +
   facet_wrap(~ genero) +
   labs(x = NULL, 
        y = "Número    \n") +
@@ -557,7 +619,7 @@ foo %>%
                             by = 1), 
                date_labels = "%b-%d", 
                limits = c(as_date("2020-03-19"), max(foo$fecha_corte))) +
-  scale_y_continuous(breaks = seq(0, 300, 10),
+  scale_y_continuous(breaks = seq(0, 300, 25),
                      limits = c(-10, max(foo$muertes) + max(foo$muertes)*0.1),
                      expand = c(0, 0),
                      labels = comma) +
@@ -577,18 +639,21 @@ foo %>%
   ggsave(str_c(ruta_graficas_mx, "09_evolucion_muertes_acumuladas_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 9)
 
 
-
-
-
 ### Gráfica 10: Número de casos confirmados de Covid-19 que fallecieron diariamente en México ----
 foo <- 
   mx_muertes_x_dia %>% 
+  # filter(fecha_corte < as_date("2020-04-11")) %>%
   mutate(num_muertes_diarias = muertes - lag(muertes),
-         num_muertes_diarias = ifelse(is.na(num_muertes_diarias) & fecha_corte == as_date("2020-03-19"), 2, num_muertes_diarias)) 
+         num_muertes_diarias = ifelse(is.na(num_muertes_diarias) & fecha_corte == as_date("2020-03-19"), 2, num_muertes_diarias),
+         promedio_movil_cinco_dias = rollmean(num_muertes_diarias, k = 5, align = 'right', fill = NA)) 
 
 foo %>% 
+  tail()
+
+foo %>%
   ggplot(aes(x = fecha_corte, y = num_muertes_diarias)) +
   geom_col(fill = "grey10", alpha = 0.9) +
+  geom_line(aes(y = promedio_movil_cinco_dias), color = "salmon", size = 2) +
   scale_x_date(date_breaks = "1 day", date_labels = "%b-%d", expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(0, 200, 5), 
                      limits = c(0, (max(foo$num_muertes_diarias) + max(foo$num_muertes_diarias)*0.1)),
@@ -597,10 +662,11 @@ foo %>%
        subtitle = subtitulo_mx,
        x = "",
        y = "Número\n",
-       caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y  @SerendipiaData.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".") +
+       caption = "</span><br>Elaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud.<br><br>Nota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de<br>caso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".<br><br>La línea **<span style='color:#fa8072;'>roja</span>** muestra el promedio móvil de cinco días del número de muertes diarias.</span>") +
   tema +
   theme(plot.title = element_text(size = 28),
         plot.subtitle = element_text(size = 22),
+        plot.caption = element_markdown(size = 16),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         axis.text.y = element_text(size = 20),
         axis.title.y = element_text(size = 20),
@@ -609,23 +675,77 @@ foo %>%
   ggsave(str_c(ruta_graficas_mx, "10_evolucion_muertes_diariamente_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
 
 
-
-
-### Gráfica 09: Casos confirmados de Covid-19 en cada entidad por cada 100 mil habitantes ----
-mx_confirmados_x_edo %>% 
-  ggplot(aes(x = fct_reorder(ent, tasa_casos_100k), 
-             y = tasa_casos_100k)) +
-  geom_col(fill = "#1E6847", alpha = 0.9) +
-  scale_y_continuous(breaks = seq(0, 4, 0.25),
-                     limits = c(0, max(mx_confirmados_x_edo$tasa_casos_100k) + max(mx_confirmados_x_edo$tasa_casos_100k)*0.1),
-                     expand = c(0, 0)) +
-  coord_flip() +
-  labs(title = "Casos confirmados de Covid-19 en cada entidad por cada\n100 mil habitantes",
-       subtitle = subtitulo_mx_confirmados,
+### Gráfica 11: Número acumulado de casos confirmados de Covid-19 que fallecieron en México, por entidad ----
+muertes_mx_st %>% 
+  filter(fecha_corte == max(fecha_corte)) %>% 
+  ggplot(aes(area = muertes, fill = log(muertes))) +
+  geom_treemap(col = "white") +
+  geom_treemap_text(aes(label = Estado), fontface = "bold", color = "white", alpha = 1, min.size = 0, grow = F) +
+  geom_treemap_text(aes(label = paste(comma(muertes, accuracy = 1), "muertes", sep = " ")), color = "white", padding.y = unit(7, "mm"),min.size = 0) +
+  geom_treemap_text(aes(label = paste(comma(muertes/sum(muertes)*100, accuracy = 1), "% del total", sep = "")), color = "white", padding.y = unit(14, "mm"), min.size = 0, size = 14) +
+  scale_fill_gradient(low = "grey95", high = "black", guide = guide_colorbar(barwidth = 18, nbins = 6), labels = comma, breaks = pretty_breaks(n = 6)) +
+  labs(title = "Número acumulado de casos confirmados de Covid-19 que fallecieron en\nMéxico, por entidad",
+       subtitle = subtitulo_mx,
        x = NULL,
-       y = "\nTasa  ",
-       caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y proyecciones poblacionales de CONAPO.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".") +
+       y = NULL,
+       caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud, curados por @mariorz.") +
   tema +
-  theme(plot.title = element_text(size = 38),
-        plot.subtitle = element_text(size = 25)) +
-  ggsave(str_c(ruta_graficas_mx, "09_tasa_casos_confirmados_por_entidad_100k_habitantes", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 14)
+  theme(legend.position = "none", 
+        plot.title = element_text(size = 32),
+        plot.subtitle = element_text(size = 20)) +
+  ggsave(str_c(ruta_graficas_mx, "11_distribucion_muertes_covid19_mexico_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  
+
+### Gráfica 12: Cambio porcentual diario del número de casos confirmados y muertes reportadas en México desde el 24 de marzo de 2020 ----
+mx_diario_nal %>% 
+  left_join(mx_muertes_x_dia , by = "fecha_corte") %>% 
+  mutate(muertes = ifelse(is.na(muertes), 0, muertes),
+         Casos = round((casos_acumulados - lag(casos_acumulados))/lag(casos_acumulados)*100, 1),
+         Muertes = round((muertes - lag(muertes))/lag(muertes)*100, 1)) %>% 
+  # tail()
+  pivot_longer(Casos:Muertes,
+             names_to = "tipo",
+             values_to = "cambio") %>%
+  filter(fecha_corte >= as_date("2020-03-28")) %>%
+  # print(n = Inf)
+  ggplot(aes(x = fecha_corte,
+             y = cambio,
+             color = tipo)) +
+  geom_line(size = 2) +
+  scale_x_date(date_breaks = "1 day",
+               date_labels = "%b-%d") +
+  scale_y_continuous(limits = c(0, 50),
+                     breaks = seq(0, 50, 10)) +
+  scale_color_manual(values = c("#1E6847", "grey50"), 
+                     labels = c("Casos confirmados", "Muertes")) +
+  labs(title = "Cambio porcentual diario del número de casos confirmados y muertes provocadas\npor Covid-19 en México a partir del 27 de marzo",
+       subtitle = subtitulo_mx,
+       x = "\n",
+       y = "Cambio porcentual\n",
+       color = NULL,
+       caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y  @SerendipiaData.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".\nEl 27 de marzo fue el primer día con más de 10 muertes acumuladas por Covid-19 en México") +
+  tema +
+  theme(legend.position = c(0.838, 0.87),
+        legend.text = element_text(size = 20),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  ggsave(str_c(ruta_graficas_mx, "12_cambio_porcentual_diario_casos_y_muertes_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+
+
+### Gráfica XX: Casos confirmados de Covid-19 en cada entidad por cada 100 mil habitantes ----
+# mx_confirmados_x_edo %>% 
+#   ggplot(aes(x = fct_reorder(ent, tasa_casos_100k), 
+#              y = tasa_casos_100k)) +
+#   geom_col(fill = "#1E6847", alpha = 0.9) +
+#   scale_y_continuous(breaks = seq(0, 4, 0.25),
+#                      limits = c(0, max(mx_confirmados_x_edo$tasa_casos_100k) + max(mx_confirmados_x_edo$tasa_casos_100k)*0.1),
+#                      expand = c(0, 0)) +
+#   coord_flip() +
+#   labs(title = "Casos confirmados de Covid-19 en cada entidad por cada\n100 mil habitantes",
+#        subtitle = subtitulo_mx_confirmados,
+#        x = NULL,
+#        y = "\nTasa  ",
+#        caption = "\nElaborado por @segasi  para el Buró de Investigación de ADN40 / Fuente: datos de la Secretaría de Salud obtenidos a través del paquete {covidMex}\ncon cifras curadas por @guzmart_ y proyecciones poblacionales de CONAPO.\n\nNota: De acuerdo con la Secretaría de Salud, se entiende por \"casos confirmado\" el de aquella \"Persona que cumpla con la definición operacional de\ncaso sospechoso y que cuente con diagnóstico confirmado por la Red Nacional de Laboratorios de Salud Pública reconocidos por el InDRE\".") +
+#   tema +
+#   theme(plot.title = element_text(size = 38),
+#         plot.subtitle = element_text(size = 25)) +
+#   ggsave(str_c(ruta_graficas_mx, "09_tasa_casos_confirmados_por_entidad_100k_habitantes", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.2, height = 14)
