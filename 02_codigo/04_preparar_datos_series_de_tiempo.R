@@ -9,26 +9,23 @@ source("02_codigo/01_funciones_limpieza_bd.R")
 ### Importar datos ----
 datos <- 
   read_csv(str_c("04_datos_generados/actualizacion_diaria_st/serie_de_tiempo_diaria_por_pais_2020_04_", 
-                 day(Sys.Date()), 
+                 day(Sys.Date()) - 1, 
                  ".csv"))
-
-### Actualizar datos de México ----
-datos <- 
-  datos %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", lead(casos_confirmados), casos_confirmados),
-         muertes = ifelse(pais == "México", lead(muertes), muertes),
-         recuperados = ifelse(pais == "México", lead(recuperados), recuperados),
-         cambio_diario_casos = ifelse(pais == "México", lead(cambio_diario_casos), cambio_diario_casos),
-         en_tratamiento = ifelse(pais == "México", lead(en_tratamiento), en_tratamiento),
-         por_casos_conf_fallecieron = ifelse(pais == "México", lead(por_casos_conf_fallecieron), por_casos_conf_fallecieron)) %>% 
-  mutate(casos_confirmados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 4219, casos_confirmados),
-         muertes = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 273, muertes),
-         recuperados = ifelse(fecha_corte == max(fecha_corte) & pais == "México", 1772, recuperados),
-         total_casos = ifelse(pais == "México", 4219, total_casos), 
-         cambio_diario_casos = ifelse(pais == "México", casos_confirmados - lag(casos_confirmados), cambio_diario_casos),
-         en_tratamiento = ifelse(pais == "México", casos_confirmados - muertes - recuperados, en_tratamiento),
-         por_casos_conf_fallecieron = ifelse(pais == "México", round(muertes/casos_confirmados*100, 1), por_casos_conf_fallecieron)) 
 
 datos %>% 
   filter(pais == "México") %>% 
-  tail()
+  tail(n = 20)
+
+### Corregir datos de México para algunos días ----
+# datos <- 
+#   datos %>%
+#   mutate(casos_confirmados = ifelse(pais == "México" & fecha_corte <= as_date("2020-04-22"), lead(casos_confirmados), casos_confirmados),
+#          muertes = ifelse(pais == "México" & fecha_corte <= as_date("2020-04-22"), lead(muertes), muertes),
+#          recuperados = ifelse(pais == "México" & fecha_corte <= as_date("2020-04-22"), lead(recuperados), recuperados),
+#          casos_confirmados = ifelse(pais == "México" & fecha_corte == as_date("2020-04-22"), 10544, casos_confirmados),
+#          casos_confirmados = ifelse(pais == "México" & fecha_corte == as_date("2020-04-24"), 12872, casos_confirmados),
+#          muertes = ifelse(pais == "México" & fecha_corte == as_date("2020-04-22"), 970, muertes),
+#          muertes = ifelse(pais == "México" & fecha_corte == as_date("2020-04-24"), 1221, muertes),
+#          cambio_diario_casos = ifelse(pais == "México", casos_confirmados - lag(casos_confirmados), cambio_diario_casos),
+#          en_tratamiento = ifelse(pais == "México", casos_confirmados - muertes - recuperados, en_tratamiento),
+#          por_casos_conf_fallecieron = ifelse(pais == "México", round(muertes/casos_confirmados*100, 1), por_casos_conf_fallecieron))

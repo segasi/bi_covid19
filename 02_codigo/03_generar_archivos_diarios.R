@@ -9,7 +9,7 @@ source("02_codigo/01_funciones_limpieza_bd.R")
 
 # Datos diarios por país	
 covid_x_pais <- 	
-  read_csv(str_c("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/04-",  day(Sys.Date()), "-2020.csv")) %>% 	
+  read_csv(str_c("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/04-",  day(Sys.Date()) - 1, "-2020.csv")) %>% 	
   clean_names()	
 
 
@@ -174,10 +174,10 @@ covid_x_pais_total <-
 ### Salvar archivos ----
 covid_serie_pais_dia %>% 
   arrange(pais, fecha_corte) %>% 
-  write_csv(str_c("04_datos_generados/actualizacion_diaria_st/serie_de_tiempo_diaria_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".csv"))
+  write_csv(str_c("04_datos_generados/actualizacion_diaria_st/serie_de_tiempo_diaria_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".csv"))
 
 covid_x_pais_total %>% 
-  write_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".csv"))
+  write_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".csv"))
 
 covid_x_pais_total %>% 
-  write.xlsx(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".xlsx"))
+  write.xlsx(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".xlsx"))

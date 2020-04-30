@@ -2,34 +2,36 @@
 remove(list = ls())
 
 ### Cargar paquetes, definir setup y tema de gráficas ----
-source("02_codigo/paquetes_setup_tema.R") 
+source("02_codigo/00_paquetes_setup_tema.R") 
 
 ### Cargar funciones ----
-source("02_codigo/coronavirus/funciones_limpieza_bd.R")
+source("02_codigo/01_funciones_limpieza_bd.R")
 
 ### Definir cortes de datos ----
 subtitulo <- str_c("Cifras a las 19:00 hrs. del ", 
-                   day(Sys.Date()), 
+                   day(Sys.Date()) - 1, 
                    " de abril de 2020 (CDMX)")
 
 
 ### Generar folder para guardar las gráficas ----
 dir_graficas <- 
   dir.create(file.path("03_graficas/02_graficas_analisis_america/", 
-                       str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"))))
+                       str_c("graficas_", str_replace_all(Sys.Date() - 1, "-", "_"))))
 ruta_graficas_america <- str_c("03_graficas/02_graficas_analisis_america/", 
-                       str_c("graficas_", str_replace_all(Sys.Date(), "-", "_"), "/"))
+                       str_c("graficas_", str_replace_all(Sys.Date() - 1, "-", "_"), "/"))
 
 ### Importar datos ----
 
 # Automático
 datos_diarios <- 
   read_csv(str_c("04_datos_generados/reporte_diario_por_pais/reporte_diario_por_pais_2020_04_", 
-                 day(Sys.Date()),
+                 day(Sys.Date()) - 1,
                  ".csv"))
 
 # Serie de tiempo
 source("02_codigo/04_preparar_datos_series_de_tiempo.R")
+
+max(datos$fecha_corte)
 
 ### Generar bases solo con países de América ----
 
@@ -38,8 +40,7 @@ bd_america <-
   mutate(continente = case_when(pais %in% c("Antigua y Barbuda", "Argentina", "Aruba", "Bolivia", "Brasil", "Canadá", "Chile", "Colombia", "Costa Rica", "Cuba", "Curacao", "Ecuador", "EEUU", "El Salvador",  "Guatemala", "Guayana Francesa", "Guyana", "Haití", "Honduras", "Islas Caimán", "Isla de San Martín", "Jamaica",  "Martinica", "México", "Nicaragua", "Panamá", "Paraguay", "Perú", "Rep. Dominicana", "San Bartolomé", "San Vincente y las Granadinas", "Santa Lucía", "Surinam", "Trinidad y Tobago", "Uruguay", "Venezuela") ~ "América")) %>% 
   filter(continente == "América", 
          # Eliminar países con menos de 1M de personas
-         !pais %in% c("Guayana Francesa", "Guyana", "Santa Lucía", "Surinam", "San Vincente y las Granadinas", "Martinica", "Curacao", "Aruba", "Islas Caimán", "Antigua y Barbuda")) %>% 
-  select(pais:recuperados)
+         !pais %in% c("Guayana Francesa", "Guyana", "Santa Lucía", "Surinam", "San Vincente y las Granadinas", "Martinica", "Curacao", "Aruba", "Islas Caimán", "Antigua y Barbuda"))
 
 bd_america_st <- 
   datos %>% # Este tibble es generado en el script generar_gifs_y_videos.R
@@ -54,14 +55,13 @@ bd_america_st %>%
   tail()
 
 ### Ajustar datos de México con datos actualizados a las 19 hrs. ----
-bd_america <- 
-  bd_america %>% 
-  mutate(casos_confirmados = ifelse(pais == "México", 4219, casos_confirmados),
-         muertes = ifelse(pais == "México", 273, muertes),
-         recuperados = ifelse(pais == "México", 1772, recuperados)
-         ) %>%  
-  mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
-         por_casos_conf_fallecieron = round((muertes/casos_confirmados)*100, 2))
+# bd_america <- 
+#   bd_america %>% 
+#   mutate(casos_confirmados = ifelse(pais == "México", 9501, casos_confirmados),
+#          muertes = ifelse(pais == "México", 857, muertes),
+#          recuperados = ifelse(pais == "México", 3263, recuperados)) %>%  
+#   mutate(en_tratamiento = casos_confirmados - muertes - recuperados, 
+#          por_casos_conf_fallecieron = round((muertes/casos_confirmados)*100, 2))
 
   
 
@@ -93,7 +93,7 @@ bd_america %>%
         panel.grid.major = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
-  ggsave(str_c(ruta_graficas_america, "01_numero_casos_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+  ggsave(str_c(ruta_graficas_america, "01_numero_casos_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
   
 ### Gráfica 02: Distribución de numero de casos confirmados y reportados de COVID-19 en en cada país y territorio ----
 bd_america %>% 
@@ -112,7 +112,7 @@ bd_america %>%
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_america, "02_distribucion_casos_confirmados_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
+  ggsave(str_c(ruta_graficas_america, "02_distribucion_casos_confirmados_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
 
 
 ### Gráfica 03: Número de muertes por COVID-19 en países de América -----
@@ -143,7 +143,7 @@ bd_america %>%
         panel.grid.major = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
-  ggsave(str_c(ruta_graficas_america, "03_numero_muertes_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+  ggsave(str_c(ruta_graficas_america, "03_numero_muertes_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
 
 ### Gráfica 04: Distribución de numero de muertes de COVID-19 en en cada país y territorio ----
 bd_america %>% 
@@ -162,7 +162,7 @@ bd_america %>%
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_america, "04_distribucion_muertes_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
+  ggsave(str_c(ruta_graficas_america, "04_distribucion_muertes_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
 
 ### Gráfica 05: Número de pacientes que se recuperaron por COVID-19 en países de América -----
 bd_america %>% 
@@ -192,7 +192,7 @@ bd_america %>%
         panel.grid.major = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
-  ggsave(str_c(ruta_graficas_america, "05_numero_recuperados_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+  ggsave(str_c(ruta_graficas_america, "05_numero_recuperados_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
 
 ### Gráfica 06: Distribución de numero de recuperados de COVID-19 en en cada país y territorio ----
 bd_america %>% 
@@ -211,7 +211,7 @@ bd_america %>%
   theme(legend.position = "none", 
         plot.title = element_text(size = 29),
         plot.subtitle = element_text(size = 20)) +
-  ggsave(str_c(ruta_graficas_america, "06_distribucion_recuperados_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
+  ggsave(str_c(ruta_graficas_america, "06_distribucion_recuperados_covid19_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 14, height = 9)
 
 
 ### Gráfica 07: Estatus de pacientes que enfermaron por el COVID-19 en países de América ----
@@ -257,7 +257,7 @@ bd_america %>%
         legend.position = c(0.185, -0.07), 
         legend.direction = "horizontal",
         legend.text = element_text(size = 18.5)) +
-  ggsave(str_c(ruta_graficas_america, "07_estatus_pacientes_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 17, height = 14)
+  ggsave(str_c(ruta_graficas_america, "07_estatus_pacientes_paises_america_latina_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 17, height = 14)
 
 
 
@@ -278,7 +278,7 @@ bd_america_st %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         # panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "08_evolucion_casos_paises_america_misma_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+  ggsave(str_c(ruta_graficas_america, "08_evolucion_casos_paises_america_misma_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
 
 
 ### Gráfica 09: Evolución del número de casos confirmados de Covid-19 en países de América, escala libre ----
@@ -301,7 +301,7 @@ bd_america_st %>%
         panel.border = element_rect(colour = "grey70", fill = "transparent", size = 0.2),
         # panel.spacing.x = unit(1.5, "lines"),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "09_evolucion_casos_paises_america_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
+  ggsave(str_c(ruta_graficas_america, "09_evolucion_casos_paises_america_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16.5, height = 9)
 
 
 
@@ -349,7 +349,7 @@ foo %>%
   scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.05)) +
   scale_y_continuous(limits = c(0, max(foo$casos_confirmados) + max(foo$casos_confirmados)*0.05),
                      label = comma, 
-                     breaks = seq(0, 40000, 2000)) +
+                     breaks = seq(0, 100000, 5000)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   labs(title = "Evolución del número acumulado de casos confirmados desde el primer caso\nconfirmado en países de América Latina*",
@@ -359,7 +359,7 @@ foo %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_america, "10_01_evolucion_casos_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_america, "10_01_evolucion_casos_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 ### Gráfica 10_02: Evolución del número acumulado de casos desde el primer caso confirmado en países de América Latina, log 10 ---- 
@@ -394,7 +394,7 @@ foo %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_america, "10_02_evolucion_casos_paises_america_latina_desde_primer_caso_log_10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_america, "10_02_evolucion_casos_paises_america_latina_desde_primer_caso_log_10_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 
@@ -441,7 +441,7 @@ foo %>%
   scale_x_continuous(breaks = c(0, seq(5, 100, 5)), limits = c(0, max(foo$dias_primer_caso) + max(foo$dias_primer_caso)*0.02)) +
   scale_y_continuous(limits = c(0, max(foo$muertes) + max(foo$muertes)*0.02),
                      label = comma, 
-                     breaks = seq(0, 2000, 100)) +
+                     breaks = seq(0, 10000, 500)) +
   scale_color_manual(values = c("#1E6847", "grey80")) +
   scale_alpha_manual(values = c(1, 0.7)) +
   labs(title = "Evolución del número acumulado de muertes desde el primer caso confirmado\nen países de América Latina*",
@@ -451,7 +451,7 @@ foo %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_america, "11_01_evolucion_muertes_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_america, "11_01_evolucion_muertes_paises_america_latina_desde_primer_caso_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 ### Gráfica 11_02: Evolución del número acumulado de muertes desde el primer caso confirmado en países de América Latina, log 10 ---- 
@@ -486,7 +486,7 @@ foo %>%
        caption = "\nElaborado por @segasi para el Buró de Investigación de ADN40 / Fuentes: CSSE de la Universidad de Johns Hopkins y Secretaría de Salud de México.\nNota: *Solo se incluyen países con una población de 1 millón o más de personas.") +
   tema +
   theme(legend.position = "none")  +
-  ggsave(str_c(ruta_graficas_america, "11_02_evolucion_muertes_paises_america_latina_desde_primer_caso_log_11_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
+  ggsave(str_c(ruta_graficas_america, "11_02_evolucion_muertes_paises_america_latina_desde_primer_caso_log_11_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 9)
 
 
 
@@ -524,7 +524,7 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "12_01_numero_diario_casos_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "12_01_numero_diario_casos_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 12_02: Número de nuevos casos de Covid-19 confirmados diariamente en los 20 países con más casos en América confirmados, escala libre ----
@@ -561,7 +561,7 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "12_02_numero_diario_casos_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "12_02_numero_diario_casos_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 13_01: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad ----
@@ -605,7 +605,7 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "13_01_numero_diario_muertes_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "13_01_numero_diario_muertes_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 13_02: Número de casos confirmados de Covid-19 que fallecieron diariamente en los 20 países con más muertes por esta enfermedad, escala libre ----
@@ -649,7 +649,7 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "13_02_numero_diario_muertes_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "13_02_numero_diario_muertes_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 
@@ -695,7 +695,7 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "14_01_numero_diario_recuperados_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "14_01_numero_diario_recuperados_top_20_casos_misma_escala_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 14_02: Número de casos confirmados de Covid-19 que se recuperaron diariamente en los 20 países con más casos en América, escala libre ----
@@ -740,20 +740,23 @@ bd_america_st %>%
         panel.spacing.x = unit(1.5, "lines"),
         strip.text = element_text(size = 18),
         strip.background = element_rect(fill = "grey70", color = "grey70")) +
-  ggsave(str_c(ruta_graficas_america, "14_02_numero_diario_recuperados_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
+  ggsave(str_c(ruta_graficas_america, "14_02_numero_diario_recuperados_top_20_casos_escala_libre_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 16, height = 12)
 
 
 ### Gráfica 15: Porcentaje de casos confirmados que murieron, por país y territorio ----
-bd_america %>% 
-  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 14, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes), " muertos | ",  comma(casos_confirmados), " casos)"), ""),
-         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 14, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes), " | ", comma(casos_confirmados), ")"), ""),
+foo <- 
+  bd_america %>% 
+  mutate(etiqueta_grandes = ifelse(por_casos_conf_fallecieron > 14, str_c("Tasa: ", por_casos_conf_fallecieron, "% ", " (", comma(muertes, accuracy = 1), " muertos | ",  comma(casos_confirmados, accuracy = 1), " casos)"), ""),
+         etiqueta_chicos = ifelse(por_casos_conf_fallecieron <= 14, str_c(por_casos_conf_fallecieron, "%", " (", comma(muertes, accuracy = 1), " | ", comma(casos_confirmados, accuracy = 1), ")"), ""),
          color_pais = ifelse(pais == "México", "a", "b")) %>%
-  filter(muertes > 0) %>% 
+  filter(muertes > 0) 
+
+foo %>% 
   ggplot(aes(x = fct_reorder(pais, por_casos_conf_fallecieron), 
              y = por_casos_conf_fallecieron, 
              fill = color_pais)) +
   geom_col() +
-  scale_y_continuous(limits = c(0, 15),
+  scale_y_continuous(limits = c(0, max(foo$por_casos_conf_fallecieron) + 1),
                      expand = c(0, 0)) +
   scale_fill_manual(values = c("salmon", "black")) +
   coord_flip() +
@@ -771,4 +774,4 @@ bd_america %>%
         panel.grid = element_blank(), 
         axis.text.x = element_blank(),
         legend.position = "none") +
-  ggsave(str_c(ruta_graficas_america, "15_porcentaje_casos_confirmados_que_murieron_en_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date(), "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13.2, height = 15) 
+  ggsave(str_c(ruta_graficas_america, "15_porcentaje_casos_confirmados_que_murieron_en_america_", str_replace_all(str_replace_all(str_replace_all(Sys.Date() - 1, "\\:", "_"), "-", "_"), " ", "_"),".png"), dpi = 200, width = 13.2, height = 15) 

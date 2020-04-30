@@ -1,6 +1,6 @@
 ### Paquetes ----
 library(pacman)
-p_load(av, covidMex, cowplot, geosphere, gganimate, GGally, ggforce, ggmap, ggrepel, gifski, glue, gpclib, ggmapstyles, ggtext, Hmisc, janitor, lubridate, openxlsx, RColorBrewer, rcartocolor, readxl, rtweet, rworldmap, rworldxtra, scales, sf, shadowtext, tesseract, tidyverse, tm, treemapify, viridis, wesanderson, zoo)
+p_load(av, covidMex, cowplot, flexdashboard, geosphere, gganimate, GGally, ggforce, ggmap, ggrepel, gifski, glue, gpclib, ggmapstyles, ggtext, Hmisc, janitor, lubridate, openxlsx, RColorBrewer, rcartocolor, readxl, rtweet, rworldmap, rworldxtra, scales, sf, shadowtext, tesseract, tidyverse, tm, treemapify, viridis, wesanderson, zoo)
 
 ### Setup general ----
 Sys.setlocale("LC_ALL", "es_ES.UTF-8") 
